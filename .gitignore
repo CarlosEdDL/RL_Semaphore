@@ -1,4 +1,5 @@
 /target
+lcov.info
 /data
 *.db
 *.db-shm

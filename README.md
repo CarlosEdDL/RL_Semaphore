@@ -2,7 +2,8 @@
 
 RL_Semaphore trains reinforcement-learning agents to control the traffic lights of a small simulated city, and lets you watch them learn. It is a learning and portfolio project built to production standards: a deterministic Rust simulator, in-house DQN and PPO agents on Burn, a training pipeline with experiment tracking, an Axum server, and a Leptos web UI compiled to WebAssembly.
 
-<!-- badges: CI, license (added in 0.2) -->
+[![CI](https://github.com/CarlosEdDL/RL_Semaphore/actions/workflows/ci.yml/badge.svg?branch=trunk)](https://github.com/CarlosEdDL/RL_Semaphore/actions/workflows/ci.yml)
+[![License: MIT OR Apache-2.0](https://img.shields.io/badge/license-MIT%20OR%20Apache--2.0-blue.svg)](#license)
 
 ## Fairness objective
 
@@ -52,8 +53,16 @@ Prerequisite: [`rustup`](https://rustup.rs). The pinned toolchain installs itsel
 
 ```sh
 cargo build
-cargo test
 cargo run -p rl-semaphore -- --help
+```
+
+To reproduce CI locally (needs `cargo-nextest`):
+
+```sh
+cargo fmt --all --check
+cargo clippy --workspace --all-targets --locked -- -D warnings
+cargo nextest run --workspace --locked
+cargo test --workspace --doc --locked
 ```
 
 ## Project status
