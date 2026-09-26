@@ -1,6 +1,6 @@
 # 0.1 Workspace skeleton
 
-**Stage:** 0 (Foundations) · **Status:** ☐ not started · **Size:** one PR
+**Stage:** 0 (Foundations) · **Status:** ☑ done · **Size:** one PR
 
 Related files: [requirements.md](requirements.md) (requirements R1–R6) · [plan.md](plan.md) (tasks).
 
