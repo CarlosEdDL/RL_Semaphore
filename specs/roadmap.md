@@ -9,7 +9,7 @@ Legend: ☐ not started · ◐ in progress · ☑ done
 ## Stage 0: Foundations
 
 - ☑ **0.1 Workspace skeleton.** Cargo workspace with empty crates (`sim`, `env`, `agents`, `trainer`, `storage`, `protocol`, `server`, `web`, `cli`), `rust-toolchain.toml`, rustfmt/clippy config, README.
-- ☐ **0.2 CI pipeline.** GitHub Actions: fmt, clippy `-D warnings`, nextest, cargo-deny, with caching.
+- ☑ **0.2 CI pipeline.** GitHub Actions: fmt, clippy `-D warnings`, nextest, cargo-deny, with caching.
 - ☐ **0.3 Observability & errors baseline.** `tracing` setup in `cli`, error conventions (`thiserror`/`anyhow`), `CONTRIBUTING.md`, first ADR (why Rust + Burn + Leptos).
 
 ## Stage 1: Simulator (single intersection, no RL)
