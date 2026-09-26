@@ -1,6 +1,6 @@
 # 0.3 Observability & errors baseline
 
-**Stage:** 0 (Foundations) · **Status:** ☐ not started · **Size:** one PR
+**Stage:** 0 (Foundations) · **Status:** ☑ done · **Size:** one PR
 
 Related files: [requirements.md](requirements.md) (requirements R1–R7) · [plan.md](plan.md) (tasks).
 
