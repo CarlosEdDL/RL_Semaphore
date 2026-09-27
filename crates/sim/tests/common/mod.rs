@@ -6,8 +6,8 @@
 use std::collections::{BTreeMap, BTreeSet};
 
 use rl_semaphore_sim::{
-    Command, Demand, Departure, LaneId, Light, MovementId, Position, Scenario, Simulation,
-    StepReport, VehicleId,
+    Command, Demand, Departure, EpisodeMetrics, LaneId, Light, MovementId, Position, Scenario,
+    Simulation, StepReport, VehicleId,
 };
 
 pub const EXAMPLE: &str = include_str!(concat!(
@@ -140,6 +140,8 @@ pub struct LaneSnap {
 pub struct Snapshot {
     pub t: u64,
     pub vehicles: BTreeMap<VehicleId, (LaneId, MovementId, Position)>,
+    /// Each vehicle's `spawned_at`, `wait_steps` and `is_stopped`.
+    pub waits: BTreeMap<VehicleId, (u64, u64, bool)>,
     pub lights: [Light; MovementId::COUNT],
     pub spawned: u64,
     pub in_backlog: u64,
@@ -166,6 +168,10 @@ impl Snapshot {
             vehicles: sim
                 .vehicles()
                 .map(|v| (v.id(), (v.lane(), v.movement(), v.position())))
+                .collect(),
+            waits: sim
+                .vehicles()
+                .map(|v| (v.id(), (v.spawned_at(), v.wait_steps(), v.is_stopped())))
                 .collect(),
             lights: sim.lights(),
             spawned: sim.spawned_count(),
@@ -262,6 +268,8 @@ pub fn check_transition(before: &Snapshot, after: &Snapshot, report: &StepReport
         }
     }
 
+    check_waits(before, after);
+
     let gone: BTreeSet<_> = before
         .vehicles
         .keys()
@@ -291,6 +299,33 @@ pub fn check_transition(before: &Snapshot, after: &Snapshot, report: &StepReport
     }
 }
 
+/// The wait rule (R2.3) and the delay identity (R2.5) for vehicles that stay in the model.
+fn check_waits(before: &Snapshot, after: &Snapshot) {
+    for (id, (_, _, pos)) in &after.vehicles {
+        let (spawned_at, wait0, _) = before.waits[id];
+        let (spawned_at1, wait1, stopped1) = after.waits[id];
+        assert_eq!(spawned_at, spawned_at1, "{id} changed its spawn step");
+        let moved = before.vehicles[id].2 != *pos;
+        assert_eq!(stopped1, !moved, "t={}: {id} stopped flag", after.t);
+        assert_eq!(
+            wait1,
+            wait0 + u64::from(!moved),
+            "t={}: {id} wait rule",
+            after.t
+        );
+        let m = match pos {
+            Position::Backlog => 0,
+            Position::OnLane { cell } => u64::from(*cell) + 1,
+        };
+        assert_eq!(
+            after.t - spawned_at,
+            m + wait1,
+            "t={}: {id} delay identity",
+            after.t
+        );
+    }
+}
+
 fn check_departure(before: &Snapshot, after: &Snapshot, d: &Departure) {
     let (lane, movement, pos) = before.vehicles[&d.vehicle];
     let last = before.lanes.iter().find(|l| l.id == lane).unwrap().last;
@@ -310,6 +345,19 @@ fn check_departure(before: &Snapshot, after: &Snapshot, d: &Departure) {
     assert_eq!((d.lane, d.movement), (lane, movement));
     assert_eq!(d.departed_at, after.t);
     assert!(d.spawned_at <= before.t);
+    let (spawned_at, wait, _) = before.waits[&d.vehicle];
+    assert_eq!(d.spawned_at, spawned_at);
+    assert_eq!(
+        d.wait_steps, wait,
+        "{} departure wait (crossing is a move)",
+        d.vehicle
+    );
+    assert_eq!(
+        d.departed_at - d.spawned_at,
+        u64::from(last) + 2 + d.wait_steps,
+        "{} departure delay identity",
+        d.vehicle
+    );
 }
 
 /// No overtaking: along each lane (stop line back to cell 0, then the backlog)
@@ -385,7 +433,29 @@ pub fn run_with_demand(
     sim: &mut Simulation,
     demand: &mut Demand,
     steps: usize,
+    command: impl FnMut(u64) -> Command,
+) -> Vec<StepLog> {
+    run_loop(sim, demand, steps, command, None)
+}
+
+/// Like [`run_with_demand`], and calls `observe` on `metrics` after every step,
+/// checking that no lane's queue is above its cells plus its backlog (R5.2).
+pub fn run_with_metrics(
+    sim: &mut Simulation,
+    demand: &mut Demand,
+    metrics: &mut EpisodeMetrics,
+    steps: usize,
+    command: impl FnMut(u64) -> Command,
+) -> Vec<StepLog> {
+    run_loop(sim, demand, steps, command, Some(metrics))
+}
+
+fn run_loop(
+    sim: &mut Simulation,
+    demand: &mut Demand,
+    steps: usize,
     mut command: impl FnMut(u64) -> Command,
+    mut metrics: Option<&mut EpisodeMetrics>,
 ) -> Vec<StepLog> {
     let mut last_departed = BTreeMap::new();
     let mut log = Vec::with_capacity(steps);
@@ -399,6 +469,10 @@ pub fn run_with_demand(
         let before = Snapshot::of(sim);
         let report = sim.step(command(t));
         check_step(&before, &Snapshot::of(sim), &report, &mut last_departed);
+        if let Some(metrics) = metrics.as_deref_mut() {
+            metrics.observe(sim, &report).unwrap();
+            check_queue_bound(sim);
+        }
         log.push(StepLog {
             t,
             arrivals,
@@ -406,4 +480,24 @@ pub fn run_with_demand(
         });
     }
     log
+}
+
+/// A lane's queue (its stopped vehicles) is at most its cells plus its backlog.
+pub fn check_queue_bound(sim: &Simulation) {
+    for approach in sim.scenario().intersection().approaches() {
+        for lane in approach.lanes() {
+            let stopped = sim
+                .vehicles()
+                .filter(|v| v.lane() == lane.id() && v.is_stopped())
+                .count();
+            let capacity =
+                sim.lane_cells(lane.id()).unwrap().len() + sim.backlog(lane.id()).unwrap().len();
+            assert!(
+                stopped <= capacity,
+                "t={}: queue {stopped} above {capacity} on {:?}",
+                sim.step_count(),
+                lane.id()
+            );
+        }
+    }
 }

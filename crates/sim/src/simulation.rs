@@ -36,6 +36,17 @@ impl LaneState {
     }
 }
 
+/// Updates a vehicle's wait for one step: a vehicle that did not move waits one
+/// more step and is marked stopped, one that moved is cleared (R2.3).
+fn record_move(vehicles: &mut BTreeMap<VehicleId, Vehicle>, id: VehicleId, moved: bool) {
+    if let Some(v) = vehicles.get_mut(&id) {
+        v.stopped = !moved;
+        if !moved {
+            v.wait_steps = v.wait_steps.saturating_add(1);
+        }
+    }
+}
+
 /// A running simulation of one intersection.
 #[derive(Debug, Clone)]
 pub struct Simulation {
@@ -205,6 +216,8 @@ impl Simulation {
                 lane,
                 spawned_at: self.t,
                 position: Position::Backlog,
+                wait_steps: 0,
+                stopped: false,
             },
         );
         self.lanes[slot].backlog.push_back(id);
@@ -229,6 +242,11 @@ impl Simulation {
     /// 4. **Entry.** In each lane, the front of the backlog enters cell 0 if
     ///    cell 0 was empty at the start of the step. At most one vehicle enters a
     ///    lane per step.
+    ///
+    /// A vehicle that does not move in the step (it waits at the stop line, is
+    /// blocked by the cell ahead, or stays in its backlog) is marked stopped and
+    /// its [`wait_steps`](Vehicle::wait_steps) grows by one. One that moves is
+    /// cleared.
     ///
     /// Every decision depends only on the state at the start of the step and on
     /// `L(t + 1)`, never on the order lanes or vehicles are processed in.
@@ -258,11 +276,13 @@ impl Simulation {
                 // Crossing (R3.2). `was_occupied` describes the cell ahead of
                 // the one being processed, as it was at the start of the step.
                 let mut was_occupied = state.cells[last].is_some();
+                let mut crossed = false;
                 if let Some(id) = state.cells[last]
                     && let Some(v) = self.vehicles.get(&id)
                     && lights[v.movement.index()] == Light::Green
                     && let Some(v) = self.vehicles.remove(&id)
                 {
+                    crossed = true;
                     state.cells[last] = None;
                     state.occupied -= 1;
                     self.on_lanes -= 1;
@@ -273,22 +293,29 @@ impl Simulation {
                         lane: lane.id(),
                         spawned_at: v.spawned_at,
                         departed_at,
+                        wait_steps: v.wait_steps,
                     });
+                }
+                if !crossed && let Some(id) = state.cells[last] {
+                    record_move(&mut self.vehicles, id, false);
                 }
 
                 // Advance (R3.3), front to back.
                 for i in (0..last).rev() {
                     let occupied = state.cells[i].is_some();
-                    if occupied
-                        && !was_occupied
-                        && let Some(id) = state.cells[i].take()
-                    {
-                        state.cells[i + 1] = Some(id);
-                        if let Some(v) = self.vehicles.get_mut(&id) {
-                            // INVARIANT: `i + 1 <= last`, and lane lengths fit in `u32`.
-                            #[allow(clippy::cast_possible_truncation)]
-                            let cell = (i + 1) as u32;
-                            v.position = Position::OnLane { cell };
+                    if let Some(id) = state.cells[i] {
+                        if was_occupied {
+                            record_move(&mut self.vehicles, id, false);
+                        } else {
+                            state.cells[i] = None;
+                            state.cells[i + 1] = Some(id);
+                            if let Some(v) = self.vehicles.get_mut(&id) {
+                                // INVARIANT: `i + 1 <= last`, and lane lengths fit in `u32`.
+                                #[allow(clippy::cast_possible_truncation)]
+                                let cell = (i + 1) as u32;
+                                v.position = Position::OnLane { cell };
+                            }
+                            record_move(&mut self.vehicles, id, true);
                         }
                     }
                     was_occupied = occupied;
@@ -303,6 +330,11 @@ impl Simulation {
                     if let Some(v) = self.vehicles.get_mut(&id) {
                         v.position = Position::OnLane { cell: 0 };
                     }
+                    record_move(&mut self.vehicles, id, true);
+                }
+                // Whoever is still in the backlog did not move.
+                for &id in &state.backlog {
+                    record_move(&mut self.vehicles, id, false);
                 }
             }
         }

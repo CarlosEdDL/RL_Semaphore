@@ -1,0 +1,21 @@
+---
+source: crates/sim/tests/metrics_snapshot.rs
+expression: text
+---
+steps=600 duration_s=600.000 departed=144 in_system=53 throughput_veh_per_h=864.000
+wait all: count=197 mean=76.036 p50=64.000 p95=198.000 p99=206.000 max=208.000
+wait north: count=73 mean=99.740 p50=98.000 p95=199.000 p99=206.000 max=206.000
+wait east: count=42 mean=62.167 p50=33.000 p95=200.000 p99=203.000 max=203.000
+wait south: count=57 mean=75.895 p50=71.000 p95=181.000 p99=208.000 max=208.000
+wait west: count=25 mean=30.440 p50=15.000 p95=104.000 p99=106.000 max=106.000
+queue north lane 0: mean=0.622 max=2
+queue north lane 1: mean=11.513 max=26
+queue east lane 0: mean=4.352 max=10
+queue south lane 0: mean=0.523 max=5
+queue south lane 1: mean=6.687 max=18
+queue west lane 0: mean=1.268 max=7
+queue north: mean=12.135 max=28
+queue east: mean=4.352 max=10
+queue south: mean=7.210 max=21
+queue west: mean=1.268 max=7
+queue total: mean=24.965 max=51

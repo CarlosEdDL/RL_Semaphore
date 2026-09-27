@@ -10,37 +10,37 @@ See [spec.md](spec.md) for scope and acceptance criteria, and [requirements.md](
 ## Tasks
 
 ### 1. Per-vehicle wait
-- [ ] Add `wait_steps: u64` and `stopped: bool` to `Vehicle` (both start at 0 / `false` in `spawn`), with the accessors `wait_steps()` and `is_stopped()` ([R2.1–R2.2](requirements.md#r2-per-vehicle-wait-tracking)). Put the definition and the delay identity in their rustdoc (R2.5).
-- [ ] Add `pub wait_steps: u64` to `Departure`, filled from the vehicle when it crosses (R2.4).
+- [x] Add `wait_steps: u64` and `stopped: bool` to `Vehicle` (both start at 0 / `false` in `spawn`), with the accessors `wait_steps()` and `is_stopped()` ([R2.1–R2.2](requirements.md#r2-per-vehicle-wait-tracking)). Put the definition and the delay identity in their rustdoc (R2.5).
+- [x] Add `pub wait_steps: u64` to `Departure`, filled from the vehicle when it crosses (R2.4).
 
 ### 2. Wait updates in `step`
-- [ ] Update waits inside the existing per-lane pass, without a second loop over all vehicles (R2.6):
+- [x] Update waits inside the existing per-lane pass, without a second loop over all vehicles (R2.6):
   - stop-line cell: a vehicle that crosses departs with its current wait; one that does not is stopped;
   - advance loop: a vehicle that moves is cleared; an occupied cell whose next cell was occupied is stopped;
   - backlog: the vehicle that enters cell 0 is cleared, every other backlog vehicle is stopped.
-- [ ] Check that nothing else in `step` changes, and that the 1.4 snapshot stays byte-identical (R1.3).
-- [ ] Extend `tests/common::Snapshot` with each vehicle's `wait_steps` and `is_stopped`, and `check_transition` with the wait rule (R2.3) and the delay identity (R2.5), so every existing 1.3–1.4 run checks them for free (R1.4).
+- [x] Check that nothing else in `step` changes, and that the 1.4 snapshot stays byte-identical (R1.3).
+- [x] Extend `tests/common::Snapshot` with each vehicle's `wait_steps` and `is_stopped`, and `check_transition` with the wait rule (R2.3) and the delay identity (R2.5), so every existing 1.3–1.4 run checks them for free (R1.4).
 
 ### 3. Collector
-- [ ] New `metrics` module: `EpisodeMetrics`, `EpisodeSummary`, `WaitStats`, `QueueStats`, `MetricsError`, re-exported from `lib.rs` ([R1.1](requirements.md#r1-crate-layout-and-compatibility), [R3](requirements.md#r3-the-metrics-collector)).
-- [ ] State: `t0`, last observed step count, `step_s`, the lane layout (lane ids in order, and each lane's approach), departed waits kept per approach as `[Vec<u64>; 4]`, and per lane / per approach / total the queue sum (`u64`) and max.
-- [ ] `observe`: check the step count first (R3.3), then record the departures and sample the queues in one pass over `sim.vehicles()` (vehicles know their lane, so a queue is a count of stopped vehicles per lane slot). Nothing is mutated before the check passes.
-- [ ] `summary`: per approach, copy the departed waits, add the waits of vehicles still in the model, sort, and compute `WaitStats`. Merge the four sorted lists (or concatenate and sort) for the overall stats ([R4](requirements.md#r4-wait-statistics)). Then compute throughput and the queue stats ([R5](requirements.md#r5-throughput-and-queue-statistics)).
-- [ ] Private `nearest_rank(sorted: &[u64], p: u64) -> u64` and a `wait_stats(sorted: &[u64], step_s: f64) -> Option<WaitStats>` helper, with unit tests (R4.4, R4.6, [R7.1](requirements.md#r7-tests)).
-- [ ] Rustdoc on `EpisodeMetrics` with the loop order and a doctest (R3.5).
+- [x] New `metrics` module: `EpisodeMetrics`, `EpisodeSummary`, `WaitStats`, `QueueStats`, `MetricsError`, re-exported from `lib.rs` ([R1.1](requirements.md#r1-crate-layout-and-compatibility), [R3](requirements.md#r3-the-metrics-collector)).
+- [x] State: `t0`, last observed step count, `step_s`, the lane layout (lane ids in order, and each lane's approach), departed waits kept per approach as `[Vec<u64>; 4]`, and per lane / per approach / total the queue sum (`u64`) and max.
+- [x] `observe`: check the step count first (R3.3), then record the departures and sample the queues in one pass over `sim.vehicles()` (vehicles know their lane, so a queue is a count of stopped vehicles per lane slot). Nothing is mutated before the check passes.
+- [x] `summary`: per approach, copy the departed waits, add the waits of vehicles still in the model, sort, and compute `WaitStats`. Merge the four sorted lists (or concatenate and sort) for the overall stats ([R4](requirements.md#r4-wait-statistics)). Then compute throughput and the queue stats ([R5](requirements.md#r5-throughput-and-queue-statistics)).
+- [x] Private `nearest_rank(sorted: &[u64], p: u64) -> u64` and a `wait_stats(sorted: &[u64], step_s: f64) -> Option<WaitStats>` helper, with unit tests (R4.4, R4.6, [R7.1](requirements.md#r7-tests)).
+- [x] Rustdoc on `EpisodeMetrics` with the loop order and a doctest (R3.5).
 
 ### 4. Tests
-- [ ] `crates/sim/tests/metrics.rs`: the hand-traced wait cases of R7.2 and the collector cases of R7.3. Reuse `common::inline` scenarios and fixed command scripts, so every expected number can be traced by hand.
-- [ ] Add a `run_with_metrics` helper to `tests/common` (or extend `run_with_demand` to take an optional collector) that calls `observe` after each step.
-- [ ] `crates/sim/tests/metrics_props.rs`: the property test of R7.4. Use the same flow bounds as `demand_props.rs`, so the run time stays similar.
-- [ ] `crates/sim/tests/metrics_snapshot.rs`: the summary snapshot of R7.5. Format floats with `{:.3}`. Run `cargo insta test` once, review the `.snap` by hand (the wait of a through vehicle on the example's green should be small, and the max should not be above about `max_red_s` plus a few cycles), and commit it.
+- [x] `crates/sim/tests/metrics.rs`: the hand-traced wait cases of R7.2 and the collector cases of R7.3. Reuse `common::inline` scenarios and fixed command scripts, so every expected number can be traced by hand.
+- [x] Add a `run_with_metrics` helper to `tests/common` (or extend `run_with_demand` to take an optional collector) that calls `observe` after each step.
+- [x] `crates/sim/tests/metrics_props.rs`: the property test of R7.4. Use the same flow bounds as `demand_props.rs`, so the run time stays similar.
+- [x] `crates/sim/tests/metrics_snapshot.rs`: the summary snapshot of R7.5. Format floats with `{:.3}`. Run `cargo insta test` once, review the `.snap` by hand (the wait of a through vehicle on the example's green should be small, and the max should not be above about `max_red_s` plus a few cycles), and commit it.
 
 ### 5. ADR-0006
-- [ ] Copy `specs/adr/0000-template.md` to `specs/adr/0006-metric-definitions.md` and fill it in ([R8.1](requirements.md#r8-adr-and-roadmap)).
-- [ ] Add it to the index table in `specs/adr/README.md` (R8.2).
+- [x] Copy `specs/adr/0000-template.md` to `specs/adr/0006-metric-definitions.md` and fill it in ([R8.1](requirements.md#r8-adr-and-roadmap)).
+- [x] Add it to the index table in `specs/adr/README.md` (R8.2).
 
 ### 6. Roadmap
-- [ ] Mark 1.5 as ☑ in `specs/roadmap.md` and set the spec status to ☑ done (R8.3).
+- [x] Mark 1.5 as ☑ in `specs/roadmap.md` and set the spec status to ☑ done (R8.3).
 
 ### 7. Verify locally
 

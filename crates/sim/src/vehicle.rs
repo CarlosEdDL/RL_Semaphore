@@ -51,6 +51,8 @@ pub struct Vehicle {
     pub(crate) lane: LaneId,
     pub(crate) spawned_at: u64,
     pub(crate) position: Position,
+    pub(crate) wait_steps: u64,
+    pub(crate) stopped: bool,
 }
 
 impl Vehicle {
@@ -83,6 +85,31 @@ impl Vehicle {
     pub const fn position(&self) -> Position {
         self.position
     }
+
+    /// The number of steps since the vehicle was spawned during which it did not
+    /// move. It is 0 at spawn.
+    ///
+    /// A vehicle *moves* in a step if it enters cell 0 from its backlog, advances
+    /// one cell, or crosses the stop line. Every other step adds one, whether the
+    /// vehicle is in a backlog or on its lane.
+    ///
+    /// In the cell model (ADR-0004) a vehicle needs exactly `n + 1` moves to cross
+    /// a lane of `n` cells, so wait is delay against free flow. For a vehicle that
+    /// departed, `departed_at - spawned_at = n + 1 + wait_steps`. For one still in
+    /// the model at step `t`, `t - spawned_at = m + wait_steps`, where `m` is 0 in
+    /// a backlog and `cell + 1` on a lane.
+    #[must_use]
+    pub const fn wait_steps(&self) -> u64 {
+        self.wait_steps
+    }
+
+    /// `true` if and only if the vehicle did not move during the most recent
+    /// [`Simulation::step`](crate::Simulation::step). A vehicle spawned since that
+    /// call is not stopped.
+    #[must_use]
+    pub const fn is_stopped(&self) -> bool {
+        self.stopped
+    }
 }
 
 /// A vehicle that crossed the stop line and left the model.
@@ -98,6 +125,9 @@ pub struct Departure {
     pub spawned_at: u64,
     /// The step count after the step in which it crossed.
     pub departed_at: u64,
+    /// The vehicle's [`wait_steps`](Vehicle::wait_steps) when it crossed. Crossing
+    /// is a move, so the step in which it departs adds nothing.
+    pub wait_steps: u64,
 }
 
 /// Why a vehicle could not be spawned.
