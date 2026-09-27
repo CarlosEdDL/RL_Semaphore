@@ -3,6 +3,7 @@
 #![warn(clippy::pedantic)]
 
 pub mod demand;
+pub mod metrics;
 pub mod road;
 pub mod scenario;
 pub mod signal;
@@ -12,6 +13,7 @@ pub mod vehicle;
 pub use demand::{
     ApproachDemandConfig, Demand, DemandConfig, DemandPlan, MAX_MEAN_ARRIVALS_PER_STEP,
 };
+pub use metrics::{EpisodeMetrics, EpisodeSummary, MetricsError, QueueStats, WaitStats};
 pub use road::{
     Approach, ApproachConfig, ApproachesConfig, ConfigError, Direction, Intersection,
     IntersectionConfig, Lane, LaneConfig, LaneId, MAX_LANES_PER_APPROACH, Movement, MovementId,
