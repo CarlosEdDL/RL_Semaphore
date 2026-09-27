@@ -10,11 +10,11 @@ Legend: ☐ not started · ◐ in progress · ☑ done
 
 - ☑ **0.1 Workspace skeleton.** Cargo workspace with empty crates (`sim`, `env`, `agents`, `trainer`, `storage`, `protocol`, `server`, `web`, `cli`), `rust-toolchain.toml`, rustfmt/clippy config, README.
 - ☑ **0.2 CI pipeline.** GitHub Actions: fmt, clippy `-D warnings`, nextest, cargo-deny, with caching.
-- ☐ **0.3 Observability & errors baseline.** `tracing` setup in `cli`, error conventions (`thiserror`/`anyhow`), `CONTRIBUTING.md`, first ADR (why Rust + Burn + Leptos).
+- ☑ **0.3 Observability & errors baseline.** `tracing` setup in `cli`, error conventions (`thiserror`/`anyhow`), `CONTRIBUTING.md`, first ADR (why Rust + Burn + Leptos).
 
 ## Stage 1: Simulator (single intersection, no RL)
 
-- ☐ **1.1 Road model.** Types for a single 4-way intersection: approaches, lanes, stop lines. TOML config loading and validation.
+- ☑ **1.1 Road model.** Types for a single 4-way intersection: approaches, lanes, stop lines. TOML config loading and validation.
 - ☐ **1.2 Signal model.** Phases, yellow and all-red clearance, min-green, **max-red**. Tests that conflicting movements are never green together.
 - ☐ **1.3 Vehicles & movement.** Spawn, advance, queue at red, and cross on green in a fixed time step. Property tests: vehicles are conserved and never overlap.
 - ☐ **1.4 Demand generation.** Seeded Poisson arrivals per approach. A determinism test (same seed produces an identical trajectory, checked with an `insta` snapshot).

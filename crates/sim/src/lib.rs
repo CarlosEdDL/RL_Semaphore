@@ -2,8 +2,9 @@
 
 #![warn(clippy::pedantic)]
 
-#[cfg(test)]
-mod tests {
-    #[test]
-    fn crate_compiles() {}
-}
+pub mod road;
+
+pub use road::{
+    Approach, ApproachConfig, ApproachesConfig, ConfigError, Direction, Intersection,
+    IntersectionConfig, Lane, LaneConfig, LaneId, MAX_LANES_PER_APPROACH, Movement,
+};

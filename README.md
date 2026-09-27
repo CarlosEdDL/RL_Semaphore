@@ -47,6 +47,8 @@ The primary objective is to minimize average vehicle waiting time, subject to a 
 | `crates/web` | `rl-semaphore-web` | Leptos frontend compiled to WASM |
 | `crates/cli` | `rl-semaphore` | `rl-semaphore` binary (`simulate`, `train`, `eval`, `serve`) |
 
+Run configs live in `configs/`; `configs/single-intersection.toml` describes the example 4-way intersection and documents the schema.
+
 ## Getting started
 
 Prerequisite: [`rustup`](https://rustup.rs). The pinned toolchain installs itself on first use.
@@ -54,6 +56,12 @@ Prerequisite: [`rustup`](https://rustup.rs). The pinned toolchain installs itsel
 ```sh
 cargo build
 cargo run -p rl-semaphore -- --help
+```
+
+Logs go to stderr. Use `-v` / `-q` to change the level (or `RUST_LOG`), and `--log-format json` (or `RL_SEMAPHORE_LOG_FORMAT=json`) for one JSON object per line:
+
+```sh
+cargo run -p rl-semaphore -- --log-format json -v simulate
 ```
 
 To reproduce CI locally (needs `cargo-nextest`):
@@ -74,6 +82,8 @@ Stage 0, Foundations. See the [roadmap](specs/roadmap.md).
 - [Mission](specs/mission.md)
 - [Tech stack](specs/tech-stack.md)
 - [Roadmap](specs/roadmap.md)
+- [Contributing](CONTRIBUTING.md)
+- [Architecture decision records](specs/adr/README.md)
 
 ## License
 

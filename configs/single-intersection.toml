@@ -1,0 +1,41 @@
+# Single 4-way intersection.
+#
+# Schema (all keys are required, unknown keys are rejected):
+#   cell_length_m         Length of one simulation cell, in meters. Vehicles occupy one cell.
+#   approaches.<side>     One table per side: north, east, south, west. The side names where
+#                         vehicles come FROM (the north approach carries southbound traffic).
+#     length_m            Length of the approach in meters. It is split into
+#                         floor(length_m / cell_length_m) cells; the remainder is dropped.
+#     lanes               Lanes listed left to right (closest to the centre line first). Each lane
+#                         lists its allowed movements: "left", "through", "right".
+#
+# Layout: a two-lane main road (north/south) with a dedicated left-turn lane, and a
+# single-lane side road (east/west) where all movements share the lane.
+
+cell_length_m = 7.5
+
+[approaches.north]
+length_m = 150.0
+lanes = [
+  { movements = ["left"] },
+  { movements = ["through", "right"] },
+]
+
+[approaches.south]
+length_m = 150.0
+lanes = [
+  { movements = ["left"] },
+  { movements = ["through", "right"] },
+]
+
+[approaches.east]
+length_m = 100.0
+lanes = [
+  { movements = ["left", "through", "right"] },
+]
+
+[approaches.west]
+length_m = 100.0
+lanes = [
+  { movements = ["left", "through", "right"] },
+]

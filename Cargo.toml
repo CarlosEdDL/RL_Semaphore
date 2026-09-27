@@ -11,7 +11,13 @@ repository = "https://github.com/CarlosEdDL/RL_Semaphore"
 authors = ["Carlos Duque"]
 
 [workspace.dependencies]
-clap = { version = "4", features = ["derive"] }
+clap = { version = "4", features = ["derive", "env"] }
+tracing = "0.1"
+tracing-subscriber = { version = "0.3", features = ["env-filter", "fmt", "json"] }
+anyhow = "1"
+thiserror = "2"
+serde = { version = "1", features = ["derive"] }
+toml = "0.9"
 
 [workspace.lints.rust]
 unsafe_code = "forbid"
