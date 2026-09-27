@@ -422,7 +422,10 @@ pub struct LaneConfig {
 /// length, then the approaches in [`Direction::ALL`] order, then lanes in index
 /// order. A scenario checks `step_s`, the intersection (paths prefixed with
 /// `intersection.`), the signal timings, the phases, movement coverage and the
-/// max-red feasibility rule, in that order.
+/// max-red feasibility rule, in that order, and then the demand: approaches in
+/// [`Direction::ALL`] order, and for each `veh_per_h`, then `left`, `through` and
+/// `right` (range, then geometry), then the sum of the ratios and the mean number
+/// of arrivals per step.
 #[derive(Debug, Clone, PartialEq, thiserror::Error)]
 #[non_exhaustive]
 pub enum ConfigError {
@@ -612,6 +615,47 @@ pub enum ConfigError {
         required_steps: u64,
         /// What `max_red_s` converts to, in steps.
         got_steps: u32,
+    },
+    /// A flow is not finite, or is negative.
+    #[error("{path} must be finite and not negative, got {value}")]
+    InvalidFlow {
+        /// Field path.
+        path: String,
+        /// The offending value, in vehicles per hour.
+        value: f64,
+    },
+    /// A turn ratio is not finite or is outside 0 to 1.
+    #[error("{path} must be finite and between 0 and 1, got {value}")]
+    InvalidTurnRatio {
+        /// Field path.
+        path: String,
+        /// The offending value.
+        value: f64,
+    },
+    /// The turn ratios of an approach do not sum to 1.
+    #[error("{path}: left + through + right must sum to 1, got {sum}")]
+    TurnRatioSum {
+        /// Field path of the approach entry.
+        path: String,
+        /// The sum of the three ratios.
+        sum: f64,
+    },
+    /// A flow gives more arrivals per step than the sampler accepts.
+    #[error(
+        "{path} = {veh_per_h} veh/h is {mean_per_step} arrivals per step of {step_s} s; \
+         it must be at most {max}"
+    )]
+    FlowTooHigh {
+        /// Field path.
+        path: String,
+        /// The offending value, in vehicles per hour.
+        veh_per_h: f64,
+        /// The simulation step, in seconds.
+        step_s: f64,
+        /// The mean number of arrivals per step.
+        mean_per_step: f64,
+        /// The largest allowed mean.
+        max: f64,
     },
 }
 

@@ -30,7 +30,7 @@ Everything is written in **Rust**, from the simulator and learning algorithms to
 
 | Crate | Responsibility | Key dependencies |
 |-------|----------------|------------------|
-| `sim` | Pure traffic simulation: road graph, vehicles, signals, demand generation, metrics. No I/O and no async. | `rand`, `rand_chacha`, `serde` |
+| `sim` | Pure traffic simulation: road graph, vehicles, signals, demand generation, metrics. No I/O and no async. | `rand_chacha`, `serde` |
 | `env` | RL environment trait (Gymnasium-like `reset`/`step`), observation/action/reward definitions, action masking and safety layer, baseline controllers. | `sim` |
 | `agents` | DQN and PPO implemented on Burn, plus replay buffer, rollout buffer, and schedules. | `burn`, `env` |
 | `trainer` | Training loop, evaluation, checkpointing, metric emission. | `agents`, `storage`, `tracing` |
