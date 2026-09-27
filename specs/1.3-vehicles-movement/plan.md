@@ -42,7 +42,7 @@ See [spec.md](spec.md) for scope and acceptance criteria, and [requirements.md](
 - [ ] For "no crossing on yellow", run until a transition starts and check that the stop-line vehicle is still there while its movement is yellow.
 
 ### 7. Property tests
-- [ ] Add `crates/sim/tests/vehicles_props.rs` ([R6.2](requirements.md#r6-tests)). Generate per step a small `Vec` of spawn requests drawn from the movements the geometry allows, plus a `Command` (`Hold` weighted higher than `SwitchTo(k)`, so both short and long greens appear).
+- [ ] Add `crates/sim/tests/vehicles_props.rs` ([R6.2](requirements.md#r6-tests)). Generate per step at most one spawn request (about one step in three) drawn from the movements the geometry allows, plus a `Command` (`Hold` weighted higher than `SwitchTo(k)`, so both short and long greens appear).
 - [ ] Record a per-step snapshot (vehicle positions, lights, departures, counters) and write each invariant as a function over two consecutive snapshots (R6.3).
 - [ ] Add the shared-lane scenario as a second strategy input.
 
@@ -76,7 +76,7 @@ cargo doc -p rl-semaphore-sim --no-deps
 - **Lights before or after the signal step.** Vehicles use `L(t + 1)`, the lights after this step's signal update. Using `L(t)` would also be safe, but the report would then show lights that do not match the crossings. Keep one convention and test it (a crossing is never reported in the step where its movement turns yellow).
 - **Example config hides head-of-line blocking.** Every shared lane in `single-intersection.toml` has all its movements green together, so the FIFO rule is never exercised there. The inline shared-lane scenario is the only coverage; do not skip it.
 - **Example config hides lane choice.** Each movement has exactly one lane in the example, so the tie-break needs an inline scenario with two lanes allowing the same movement.
-- **Unbounded backlogs.** Under a long red and heavy spawning, backlogs grow without limit. Keep the property-test spawn rate small (for example 0–2 spawns per step) so memory and run time stay bounded; a cap belongs with demand in 1.4 if it is needed at all.
+- **Unbounded backlogs.** Under a long red and heavy spawning, backlogs grow without limit. Keep the property-test spawn rate small (at most 1 spawn per step, on about a third of the steps, well below the discharge capacity) so backlogs, memory and run time stay bounded; a cap belongs with demand in 1.4 if it is needed at all.
 - **Scope creep toward 1.5.** It is tempting to add "steps stopped" or wait counters to `Vehicle`. Keep only spawn and departure steps here; metrics are 1.5.
 - **Scope creep toward 1.4.** Do not add an arrival process or turn ratios. Tests spawn explicitly.
-- **proptest run time.** 1,000+ steps × 256 cases with up to ~100 vehicles is fast, but keep the step count bounded so CI stays quick. Commit `proptest-regressions/` if it appears.
+- **proptest run time.** Every step takes two snapshots (before and after), each `O(vehicles)`, so a run costs about `steps × live vehicles`. With 0–2 spawns per step, backlogs grew into the thousands and 32 cases took 10–13 s in the debug profile; at most 1 spawn per step on a third of the steps keeps the 256 default cases (so `PROPTEST_CASES` still applies) at about 10 s (example scenario) and 18 s (shared-lane scenario) in the debug profile. The workspace `Cargo.toml` therefore sets `[profile.test] opt-level = 3` (debug assertions and overflow checks stay on), which brings them to about 1.1 s and 1.7 s. If it is slow again, make the snapshot cheaper. Do not override the case count, and keep the step count bounded so CI stays quick. Commit `proptest-regressions/` if it appears.

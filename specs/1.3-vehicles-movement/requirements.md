@@ -60,7 +60,7 @@ Notation: `t` is the step count (0 before the first `step`). `C(t)` is the occup
   - no crossing on yellow;
   - head-of-line blocking in a shared lane, using an inline scenario where a lane allows two movements that are green in different phases;
   - determinism: the same spawn and command script run twice gives identical vehicles and reports.
-- **R6.2** Property tests (`proptest`) MUST run the example scenario, and SHOULD also run a scenario with a shared lane split across phases, for at least 1,000 steps under arbitrary scripts (each step: zero or more spawns of movements the geometry allows, then an arbitrary `Command`), and check after every step:
+- **R6.2** Property tests (`proptest`) MUST run the example scenario, and SHOULD also run a scenario with a shared lane split across phases, for at least 1,000 steps under arbitrary scripts (each step: at most one spawn of a movement the geometry allows, then an arbitrary `Command`; the spawn rate MUST stay below the lanes' discharge capacity so backlogs stay bounded and the run time small), and check after every step:
   - conservation: spawned = in backlog + on lane + departed, and the counters of R4.3 agree with the vehicles actually stored;
   - no two vehicles occupy the same cell, and every cell index is below the lane length;
   - each vehicle on a lane moved 0 or 1 cells forward since the previous step (or entered cell 0 from the backlog), and never changed lane;

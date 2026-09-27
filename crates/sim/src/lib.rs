@@ -5,6 +5,8 @@
 pub mod road;
 pub mod scenario;
 pub mod signal;
+pub mod simulation;
+pub mod vehicle;
 
 pub use road::{
     Approach, ApproachConfig, ApproachesConfig, ConfigError, Direction, Intersection,
@@ -15,3 +17,5 @@ pub use signal::{
     Command, IgnoredReason, Light, MAX_PHASES, Phase, PhaseId, Signal, SignalPlan, SignalState,
     StepOutcome,
 };
+pub use simulation::{Simulation, StepReport};
+pub use vehicle::{Departure, Position, SpawnError, Vehicle, VehicleId};
