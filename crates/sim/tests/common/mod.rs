@@ -6,7 +6,8 @@
 use std::collections::{BTreeMap, BTreeSet};
 
 use rl_semaphore_sim::{
-    Departure, LaneId, Light, MovementId, Position, Scenario, Simulation, StepReport, VehicleId,
+    Command, Demand, Departure, LaneId, Light, MovementId, Position, Scenario, Simulation,
+    StepReport, VehicleId,
 };
 
 pub const EXAMPLE: &str = include_str!(concat!(
@@ -365,4 +366,44 @@ pub fn check_step(
     check_layout(after);
     check_transition(before, after, report);
     check_fifo(after, report, last_departed);
+}
+
+/// What happened in one step of [`run_with_demand`].
+#[derive(Debug, Clone)]
+pub struct StepLog {
+    /// The step count before the step.
+    pub t: u64,
+    /// The arrivals spawned before the step, with their vehicle ids.
+    pub arrivals: Vec<(VehicleId, MovementId)>,
+    /// The vehicles that crossed during the step.
+    pub departures: Vec<VehicleId>,
+}
+
+/// Runs the loop of R5.1 for `steps` steps: draw arrivals, spawn them, step with
+/// `command(t)`, and check every 1.3 invariant on the way.
+pub fn run_with_demand(
+    sim: &mut Simulation,
+    demand: &mut Demand,
+    steps: usize,
+    mut command: impl FnMut(u64) -> Command,
+) -> Vec<StepLog> {
+    let mut last_departed = BTreeMap::new();
+    let mut log = Vec::with_capacity(steps);
+    for _ in 0..steps {
+        let t = sim.step_count();
+        let arrivals: Vec<_> = demand
+            .arrivals()
+            .into_iter()
+            .map(|m| (sim.spawn(m.approach, m.movement).unwrap(), m))
+            .collect();
+        let before = Snapshot::of(sim);
+        let report = sim.step(command(t));
+        check_step(&before, &Snapshot::of(sim), &report, &mut last_departed);
+        log.push(StepLog {
+            t,
+            arrivals,
+            departures: report.departures.iter().map(|d| d.vehicle).collect(),
+        });
+    }
+    log
 }

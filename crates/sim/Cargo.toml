@@ -12,9 +12,11 @@ publish = false
 serde.workspace = true
 toml.workspace = true
 thiserror.workspace = true
+rand_chacha.workspace = true
 
 [dev-dependencies]
 proptest.workspace = true
+insta.workspace = true
 
 [lints]
 workspace = true

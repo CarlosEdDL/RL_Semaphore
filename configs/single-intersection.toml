@@ -1,4 +1,4 @@
-# Single 4-way intersection scenario: time step, road geometry and signal plan.
+# Single 4-way intersection scenario: time step, road geometry, signal plan and demand.
 #
 # Schema (all keys are required unless stated, unknown keys are rejected):
 #   step_s                Length of one simulation step, in seconds.
@@ -25,6 +25,14 @@
 #                         each optional). Protected turns only: a phase may not grant movements
 #                         that conflict, and every movement the lanes allow must be granted by
 #                         some phase.
+#   [demand]            Optional. Arrivals per side; a missing side has no arrivals, and a
+#                       missing table means no demand at all.
+#     <side>            One entry per side: north, east, south, west, each optional.
+#       veh_per_h       Required. Mean flow in vehicles per hour, finite and >= 0. Arrivals per
+#                       step are Poisson with mean veh_per_h * step_s / 3600, at most 10.
+#       left, through,  Fractions of the flow that make each movement; each optional (default 0)
+#       right           and within 0..=1. They must sum to 1 (within 1e-9), and a fraction above
+#                       0 needs a lane of that side that allows the movement.
 #
 # Layout: a two-lane main road (north/south) with a dedicated left-turn lane, and a
 # single-lane side road (east/west) where all movements share the lane. The side road
@@ -83,3 +91,9 @@ green = { east = ["left", "through", "right"] }
 [[signal.phases]]
 name = "west"
 green = { west = ["left", "through", "right"] }
+
+[demand]
+north = { veh_per_h = 400.0, left = 0.2, through = 0.7, right = 0.1 }
+south = { veh_per_h = 400.0, left = 0.2, through = 0.7, right = 0.1 }
+east  = { veh_per_h = 150.0, left = 0.2, through = 0.6, right = 0.2 }
+west  = { veh_per_h = 150.0, left = 0.2, through = 0.6, right = 0.2 }

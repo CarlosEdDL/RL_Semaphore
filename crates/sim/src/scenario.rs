@@ -1,4 +1,4 @@
-//! A full scenario: time step, intersection geometry and signal plan.
+//! A full scenario: time step, intersection geometry, signal plan and demand.
 //!
 //! The TOML description ([`ScenarioConfig`]) is validated into an immutable
 //! [`Scenario`]. Signal timings are written in seconds and converted once, at load
@@ -6,6 +6,7 @@
 
 use serde::{Deserialize, Serialize};
 
+use crate::demand::{DemandConfig, DemandPlan, validate_demand};
 use crate::road::{ConfigError, Direction, Intersection, IntersectionConfig, Movement, MovementId};
 use crate::signal::{MAX_PHASES, Phase, SignalPlan};
 
@@ -58,6 +59,9 @@ pub struct ScenarioConfig {
     pub intersection: IntersectionConfig,
     /// The signal plan.
     pub signal: SignalConfig,
+    /// Arrivals per approach. Missing means no demand.
+    #[serde(default, skip_serializing_if = "DemandConfig::is_empty")]
+    pub demand: DemandConfig,
 }
 
 /// Raw signal plan: timings in seconds and the phase list.
@@ -163,10 +167,12 @@ impl ScenarioConfig {
         }
         let intersection = self.intersection.validate_at("intersection.")?;
         let signal_plan = validate_signal(&self.signal, step_s, &intersection)?;
+        let demand = validate_demand(&self.demand, step_s, &intersection)?;
         Ok(Scenario {
             step_s,
             intersection,
             signal_plan,
+            demand,
             config: self.normalized(),
         })
     }
@@ -194,6 +200,7 @@ pub struct Scenario {
     step_s: f64,
     intersection: Intersection,
     signal_plan: SignalPlan,
+    demand: DemandPlan,
     config: ScenarioConfig,
 }
 
@@ -224,6 +231,12 @@ impl Scenario {
     #[must_use]
     pub const fn signal_plan(&self) -> &SignalPlan {
         &self.signal_plan
+    }
+
+    /// The validated demand: flow, turn ratios and mean arrivals per step.
+    #[must_use]
+    pub const fn demand(&self) -> &DemandPlan {
+        &self.demand
     }
 
     /// The config this scenario was built from, so a run can record it exactly.
