@@ -1,0 +1,44 @@
+---
+source: crates/cli/tests/simulate_snapshot.rs
+expression: "simulate(\"text\")"
+---
+config:      configs/single-intersection.toml
+seed:        0
+steps:       3600
+duration_s:  3600.0
+controller:  fixed_time
+  green ns-left         10.0 s
+  green ns-through      30.0 s
+  green east            10.0 s
+  green west            10.0 s
+  cycle                 80.0 s
+departed:    1118
+in_system:   13
+throughput:  1118.0 veh/h
+
+wait (s)
+             count     mean      p50      p95      p99      max
+all           1131     29.8     27.0     69.0    113.0    152.0
+north          411     23.3     21.0     56.0     65.0     70.0
+east           148     40.0     38.0     84.0    115.0    117.0
+south          416     25.4     24.0     60.0     69.0    104.0
+west           156     49.3     46.0    109.0    138.0    152.0
+
+queue (vehicles)
+               mean      max
+north 0        0.77        4
+north 1        1.90       11
+east 0         1.64        9
+south 0        0.91        7
+south 1        2.02       16
+west 0         2.13       11
+north          2.66       11
+east           1.64        9
+south          2.93       16
+west           2.13       11
+total          9.37       26
+
+signal
+switches_started:  180
+switches_forced:   0
+commands_ignored:  0

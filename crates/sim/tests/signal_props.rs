@@ -47,7 +47,11 @@ fn plan(overlap: bool, y: u32, a: u32, g: u32, m: u32) -> SignalPlan {
     let phases = if overlap {
         OVERLAP_PHASES.to_owned()
     } else {
+        // The example's own `[fixed_time]` plan is dropped: these timings are not its.
         EXAMPLE
+            .split("\n# Fixed-time plan")
+            .next()
+            .unwrap()
             .split("\n[signal]\n")
             .nth(1)
             .unwrap()

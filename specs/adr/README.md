@@ -33,3 +33,4 @@ Small, local choices do not need one. Write the ADR in the PR of the phase that 
 | [0004](0004-vehicle-update-rule.md) | Vehicle update rule | Accepted | 2026-09-26 |
 | [0005](0005-demand-model.md) | Demand model | Accepted | 2026-09-26 |
 | [0006](0006-metric-definitions.md) | Metric definitions | Accepted | 2026-09-26 |
+| [0007](0007-fixed-time-controller.md) | Fixed-time controller and simulate command | Accepted | 2026-09-26 |

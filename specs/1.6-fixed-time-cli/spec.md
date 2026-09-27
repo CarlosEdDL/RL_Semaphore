@@ -1,6 +1,6 @@
 # 1.6 Fixed-time controller + CLI
 
-**Stage:** 1 (Simulator, single intersection, no RL) · **Status:** ☐ not started · **Size:** one PR
+**Stage:** 1 (Simulator, single intersection, no RL) · **Status:** ☑ done · **Size:** one PR
 
 Related files: [requirements.md](requirements.md) (requirements R1–R9) · [plan.md](plan.md) (tasks).
 

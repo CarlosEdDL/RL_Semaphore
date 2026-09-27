@@ -62,6 +62,42 @@ pub struct ScenarioConfig {
     /// Arrivals per approach. Missing means no demand.
     #[serde(default, skip_serializing_if = "DemandConfig::is_empty")]
     pub demand: DemandConfig,
+    /// The fixed-time timing plan, read by the fixed-time controller. Optional.
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub fixed_time: Option<FixedTimeConfig>,
+}
+
+/// Raw fixed-time timing plan: one green duration per phase.
+#[derive(Debug, Clone, PartialEq, Serialize, Deserialize)]
+#[serde(deny_unknown_fields)]
+pub struct FixedTimeConfig {
+    /// Green duration of each phase, in seconds, in the order of `[[signal.phases]]`.
+    /// Converted like `min_green_s` (rounded up to whole steps).
+    pub green_s: Vec<f64>,
+}
+
+/// A validated fixed-time plan, in whole steps.
+///
+/// Phase `i` is green for `green_steps()[i]` entries each time it is served, and the
+/// full cycle (every green plus every yellow and all-red) lasts `cycle_steps()` steps.
+#[derive(Debug, Clone, PartialEq, Eq)]
+pub struct FixedTimePlan {
+    green: Vec<u32>,
+    cycle: u32,
+}
+
+impl FixedTimePlan {
+    /// Green duration of each phase in steps, in phase order.
+    #[must_use]
+    pub fn green_steps(&self) -> &[u32] {
+        &self.green
+    }
+
+    /// Length of a full cycle in steps: `Σ (green + yellow + all_red)` over the phases.
+    #[must_use]
+    pub const fn cycle_steps(&self) -> u32 {
+        self.cycle
+    }
 }
 
 /// Raw signal plan: timings in seconds and the phase list.
@@ -168,11 +204,13 @@ impl ScenarioConfig {
         let intersection = self.intersection.validate_at("intersection.")?;
         let signal_plan = validate_signal(&self.signal, step_s, &intersection)?;
         let demand = validate_demand(&self.demand, step_s, &intersection)?;
+        let fixed_time = validate_fixed_time(self.fixed_time.as_ref(), step_s, &signal_plan)?;
         Ok(Scenario {
             step_s,
             intersection,
             signal_plan,
             demand,
+            fixed_time,
             config: self.normalized(),
         })
     }
@@ -201,6 +239,7 @@ pub struct Scenario {
     intersection: Intersection,
     signal_plan: SignalPlan,
     demand: DemandPlan,
+    fixed_time: Option<FixedTimePlan>,
     config: ScenarioConfig,
 }
 
@@ -237,6 +276,12 @@ impl Scenario {
     #[must_use]
     pub const fn demand(&self) -> &DemandPlan {
         &self.demand
+    }
+
+    /// The validated fixed-time plan, if the scenario has a `[fixed_time]` table.
+    #[must_use]
+    pub const fn fixed_time(&self) -> Option<&FixedTimePlan> {
+        self.fixed_time.as_ref()
     }
 
     /// The config this scenario was built from, so a run can record it exactly.
@@ -370,6 +415,78 @@ fn validate_signal(
     }
 
     Ok(SignalPlan::new(phases, yellow, all_red, min_green, max_red))
+}
+
+/// Validates the optional fixed-time plan against the signal plan.
+///
+/// The green of each phase is converted with the rules of `min_green_s` and must be at
+/// least min-green. For two or more phases, the round-robin cycle must also respect
+/// max-red. Phase `j` is not green for the `C - g[j]` entries that follow its own
+/// green (its yellow and all-red, then every other phase with its green, yellow and
+/// all-red), so its red age reaches `C - g[j]` on the last of them, the entry before
+/// it turns green again. The signal admits a switch only if that age stays at most
+/// `M` (see the `signal` module docs), so the plan is valid exactly when
+/// `C - g[j] <= M` for every phase `j`. Then no switch is ever forced. With one phase
+/// the only phase is never red and the cycle check does not apply.
+fn validate_fixed_time(
+    config: Option<&FixedTimeConfig>,
+    step_s: f64,
+    signal: &SignalPlan,
+) -> Result<Option<FixedTimePlan>, ConfigError> {
+    let Some(config) = config else {
+        return Ok(None);
+    };
+    let n = signal.phases().len();
+    if config.green_s.len() != n {
+        return Err(ConfigError::FixedTimeLength {
+            path: "fixed_time.green_s".to_owned(),
+            expected: n,
+            got: config.green_s.len(),
+        });
+    }
+    let min_green = signal.min_green_steps();
+    let mut green = Vec::with_capacity(n);
+    for (i, &value) in config.green_s.iter().enumerate() {
+        let path = format!("fixed_time.green_s[{i}]");
+        let converted = if value.is_finite() && value > 0.0 {
+            to_steps(value, step_s, Rounding::Up)
+        } else {
+            None
+        };
+        let Some(g) = converted else {
+            return Err(ConfigError::InvalidFixedTimeGreen { path, value });
+        };
+        if g < min_green {
+            return Err(ConfigError::FixedTimeGreenTooShort {
+                path,
+                value,
+                steps: g,
+                min_steps: min_green,
+            });
+        }
+        green.push(g);
+    }
+
+    let transition = u64::from(signal.yellow_steps()) + u64::from(signal.all_red_steps());
+    // At most 8 phases of at most 2 * u32::MAX steps each: no overflow in u64.
+    let cycle: u64 = green.iter().map(|&g| u64::from(g) + transition).sum();
+    if n >= 2 {
+        let max_red = u64::from(signal.max_red_steps());
+        for (i, &g) in green.iter().enumerate() {
+            let red = cycle - u64::from(g);
+            if red > max_red {
+                return Err(ConfigError::FixedTimeCycleExceedsMaxRed {
+                    path: format!("fixed_time.green_s[{i}]"),
+                    red_steps: red,
+                    max_red_steps: signal.max_red_steps(),
+                });
+            }
+        }
+    }
+    let cycle = u32::try_from(cycle).map_err(|_| ConfigError::FixedTimeCycleTooLong {
+        path: "fixed_time.green_s".to_owned(),
+    })?;
+    Ok(Some(FixedTimePlan { green, cycle }))
 }
 
 /// Validates one phase against the geometry and against the phases before it.

@@ -21,6 +21,12 @@ fn head() -> &'static str {
     EXAMPLE.split("\n[signal]\n").next().unwrap()
 }
 
+/// The example without its `[fixed_time]` plan, for tests that change the signal timings
+/// (a plan is validated against them, and these tests are about the signal alone).
+fn example_without_plan() -> &'static str {
+    EXAMPLE.split("\n# Fixed-time plan").next().unwrap()
+}
+
 /// The example geometry with the given `[signal]` table (timings and phases).
 fn doc(signal: &str) -> String {
     format!("{}\n[signal]\n{signal}", head())
@@ -224,7 +230,7 @@ fn durations_convert_with_the_right_rounding() {
 #[test]
 fn near_integer_quotients_snap() {
     // 0.9 / 0.3 is 3.0000000000000004 in floating point: it must give 3, not 4.
-    let text = EXAMPLE
+    let text = example_without_plan()
         .replace("step_s = 1.0", "step_s = 0.3")
         .replace("yellow_s = 3.0", "yellow_s = 0.9")
         .replace("all_red_s = 2.0", "all_red_s = 0.6")
@@ -458,7 +464,10 @@ fn rejects_short_max_red() {
     }
     assert!(e.to_string().contains("35"), "{e}");
     assert!(
-        Scenario::from_toml_str(&EXAMPLE.replace("max_red_s = 90.0", "max_red_s = 35.0")).is_ok()
+        Scenario::from_toml_str(
+            &example_without_plan().replace("max_red_s = 90.0", "max_red_s = 35.0")
+        )
+        .is_ok()
     );
 }
 

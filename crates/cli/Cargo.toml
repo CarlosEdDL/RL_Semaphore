@@ -13,13 +13,17 @@ name = "rl-semaphore"
 path = "src/main.rs"
 
 [dependencies]
+rl-semaphore-sim.workspace = true
+rl-semaphore-env.workspace = true
 clap.workspace = true
+serde.workspace = true
+serde_json.workspace = true
 tracing.workspace = true
 tracing-subscriber.workspace = true
 anyhow.workspace = true
 
 [dev-dependencies]
-serde_json = "1"
+insta.workspace = true
 
 [lints]
 workspace = true

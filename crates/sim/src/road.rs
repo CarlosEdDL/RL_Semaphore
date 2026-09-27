@@ -425,7 +425,10 @@ pub struct LaneConfig {
 /// max-red feasibility rule, in that order, and then the demand: approaches in
 /// [`Direction::ALL`] order, and for each `veh_per_h`, then `left`, `through` and
 /// `right` (range, then geometry), then the sum of the ratios and the mean number
-/// of arrivals per step.
+/// of arrivals per step. Last comes the optional fixed-time plan: the number of
+/// entries, then each green in order (finite and positive, then at least
+/// min-green), then the cycle against max-red (phases in order), then the size of
+/// the cycle.
 #[derive(Debug, Clone, PartialEq, thiserror::Error)]
 #[non_exhaustive]
 pub enum ConfigError {
@@ -615,6 +618,57 @@ pub enum ConfigError {
         required_steps: u64,
         /// What `max_red_s` converts to, in steps.
         got_steps: u32,
+    },
+    /// `fixed_time.green_s` does not have one entry per phase.
+    #[error("{path} must have one entry per phase ({expected}), got {got}")]
+    FixedTimeLength {
+        /// Field path.
+        path: String,
+        /// The number of phases.
+        expected: usize,
+        /// The number of entries.
+        got: usize,
+    },
+    /// A fixed-time green is not finite, not greater than 0, or too long to count in steps.
+    #[error(
+        "{path} must be finite, greater than 0 and at most {} steps long, got {value}",
+        u32::MAX
+    )]
+    InvalidFixedTimeGreen {
+        /// Field path.
+        path: String,
+        /// The offending value, in seconds.
+        value: f64,
+    },
+    /// A fixed-time green is shorter than min-green.
+    #[error("{path} = {value} s is {steps} steps, below signal.min_green_s ({min_steps} steps)")]
+    FixedTimeGreenTooShort {
+        /// Field path.
+        path: String,
+        /// The offending value, in seconds.
+        value: f64,
+        /// The value in steps.
+        steps: u32,
+        /// Min-green in steps.
+        min_steps: u32,
+    },
+    /// The fixed-time cycle keeps a phase red for longer than max-red.
+    #[error(
+        "{path}: the cycle keeps this phase red for {red_steps} steps, above signal.max_red_s ({max_red_steps} steps)"
+    )]
+    FixedTimeCycleExceedsMaxRed {
+        /// Field path of the phase's green.
+        path: String,
+        /// Entries the phase stays not green in each cycle (`C - green`).
+        red_steps: u64,
+        /// Max-red in steps.
+        max_red_steps: u32,
+    },
+    /// The fixed-time cycle does not fit in `u32` steps.
+    #[error("{path}: the cycle is longer than {} steps", u32::MAX)]
+    FixedTimeCycleTooLong {
+        /// Field path.
+        path: String,
     },
     /// A flow is not finite, or is negative.
     #[error("{path} must be finite and not negative, got {value}")]
