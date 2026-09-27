@@ -27,3 +27,7 @@ missing_docs = "warn"
 [workspace.lints.clippy]
 unwrap_used = "warn"
 expect_used = "warn"
+
+# Optimize test binaries (the vehicle property tests run ~1,000 steps × 256 cases); debug assertions and overflow checks stay on.
+[profile.test]
+opt-level = 3

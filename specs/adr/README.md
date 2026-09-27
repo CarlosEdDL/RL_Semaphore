@@ -30,3 +30,4 @@ Small, local choices do not need one. Write the ADR in the PR of the phase that 
 | [0001](0001-rust-burn-leptos.md) | Rust, Burn and Leptos for the whole system | Accepted | 2026-09-26 |
 | [0002](0002-discrete-cell-model.md) | Discrete cell model for lanes | Accepted | 2026-09-26 |
 | [0003](0003-signal-safety-model.md) | Signal safety model | Accepted | 2026-09-26 |
+| [0004](0004-vehicle-update-rule.md) | Vehicle update rule | Accepted | 2026-09-26 |
