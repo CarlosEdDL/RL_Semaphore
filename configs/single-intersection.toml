@@ -1,41 +1,85 @@
-# Single 4-way intersection.
+# Single 4-way intersection scenario: time step, road geometry and signal plan.
 #
-# Schema (all keys are required, unknown keys are rejected):
-#   cell_length_m         Length of one simulation cell, in meters. Vehicles occupy one cell.
-#   approaches.<side>     One table per side: north, east, south, west. The side names where
+# Schema (all keys are required unless stated, unknown keys are rejected):
+#   step_s                Length of one simulation step, in seconds.
+#   [intersection]        The road geometry.
+#     cell_length_m       Length of one simulation cell, in meters. Vehicles occupy one cell.
+#     approaches.<side>   One table per side: north, east, south, west. The side names where
 #                         vehicles come FROM (the north approach carries southbound traffic).
-#     length_m            Length of the approach in meters. It is split into
+#       length_m          Length of the approach in meters. It is split into
 #                         floor(length_m / cell_length_m) cells; the remainder is dropped.
-#     lanes               Lanes listed left to right (closest to the centre line first). Each lane
+#       lanes             Lanes listed left to right (closest to the centre line first). Each lane
 #                         lists its allowed movements: "left", "through", "right".
+#   [signal]              The signal plan. Durations are written in seconds and converted once,
+#                         at load time, to whole steps (value / step_s). A quotient within 1e-9
+#                         of an integer snaps to it; otherwise the rounding is given below.
+#     yellow_s            Yellow duration. Rounded UP, at least 1 step.
+#     all_red_s           All-red clearance after yellow. Rounded UP, may be 0 steps.
+#     min_green_s         Minimum time a phase stays green. Rounded UP, at least 1 step.
+#     max_red_s           Longest time a phase may wait for green. Rounded DOWN, at least 1 step,
+#                         and enough for all phases to take turns:
+#                         steps >= n * (yellow + all_red) + (n - 1) * min_green, with n phases.
+#     [[signal.phases]]   1 to 8 phases; the first one is green at step 0.
+#       name              Unique, non-empty.
+#       green             Movements that are green together, per side (north, east, south, west;
+#                         each optional). Protected turns only: a phase may not grant movements
+#                         that conflict, and every movement the lanes allow must be granted by
+#                         some phase.
 #
 # Layout: a two-lane main road (north/south) with a dedicated left-turn lane, and a
-# single-lane side road (east/west) where all movements share the lane.
+# single-lane side road (east/west) where all movements share the lane. The side road
+# has one phase per side, because its shared lane carries left turns that conflict with
+# the opposing through traffic.
 
+step_s = 1.0
+
+[intersection]
 cell_length_m = 7.5
 
-[approaches.north]
+[intersection.approaches.north]
 length_m = 150.0
 lanes = [
   { movements = ["left"] },
   { movements = ["through", "right"] },
 ]
 
-[approaches.south]
+[intersection.approaches.south]
 length_m = 150.0
 lanes = [
   { movements = ["left"] },
   { movements = ["through", "right"] },
 ]
 
-[approaches.east]
+[intersection.approaches.east]
 length_m = 100.0
 lanes = [
   { movements = ["left", "through", "right"] },
 ]
 
-[approaches.west]
+[intersection.approaches.west]
 length_m = 100.0
 lanes = [
   { movements = ["left", "through", "right"] },
 ]
+
+[signal]
+yellow_s = 3.0
+all_red_s = 2.0
+min_green_s = 5.0
+max_red_s = 90.0
+
+[[signal.phases]]
+name = "ns-left"
+green = { north = ["left"], south = ["left"] }
+
+[[signal.phases]]
+name = "ns-through"
+green = { north = ["through", "right"], south = ["through", "right"] }
+
+[[signal.phases]]
+name = "east"
+green = { east = ["left", "through", "right"] }
+
+[[signal.phases]]
+name = "west"
+green = { west = ["left", "through", "right"] }

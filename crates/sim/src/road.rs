@@ -55,6 +55,12 @@ impl Direction {
         self as usize
     }
 
+    /// The direction `steps` quarter turns clockwise (north, east, south, west order).
+    #[must_use]
+    pub const fn rotate_cw(self, steps: usize) -> Direction {
+        Self::ALL[(self.index() + steps) % 4]
+    }
+
     /// The side a vehicle exits to when it enters from `self` and performs
     /// `movement`, for right-hand traffic.
     ///
@@ -68,7 +74,7 @@ impl Direction {
             Movement::Through => 2,
             Movement::Right => 3,
         };
-        Self::ALL[(self.index() + steps) % 4]
+        self.rotate_cw(steps)
     }
 }
 
@@ -93,6 +99,17 @@ pub enum Movement {
     Right,
 }
 
+impl Movement {
+    /// All movements in declaration order: left, through, right.
+    pub const ALL: [Movement; 3] = [Movement::Left, Movement::Through, Movement::Right];
+
+    /// Position in [`Movement::ALL`].
+    #[must_use]
+    pub const fn index(self) -> usize {
+        self as usize
+    }
+}
+
 impl fmt::Display for Movement {
     fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
         f.write_str(match self {
@@ -100,6 +117,90 @@ impl fmt::Display for Movement {
             Movement::Through => "through",
             Movement::Right => "right",
         })
+    }
+}
+
+/// One of the 12 movements of the intersection: a [`Movement`] made from an approach.
+///
+/// Per-movement state can live in `[T; 12]` arrays indexed by [`MovementId::index`].
+#[derive(Debug, Clone, Copy, PartialEq, Eq, PartialOrd, Ord, Hash, Serialize, Deserialize)]
+pub struct MovementId {
+    /// The approach the vehicle comes from.
+    pub approach: Direction,
+    /// What the vehicle does at the intersection.
+    pub movement: Movement,
+}
+
+impl MovementId {
+    /// Number of movements.
+    pub const COUNT: usize = 12;
+
+    /// All movements: approaches in [`Direction::ALL`] order, then movements in
+    /// `Left, Through, Right` order. `ALL[i].index() == i`.
+    pub const ALL: [MovementId; Self::COUNT] = {
+        let mut all = [MovementId {
+            approach: Direction::North,
+            movement: Movement::Left,
+        }; Self::COUNT];
+        let mut i = 0;
+        while i < Self::COUNT {
+            all[i] = MovementId {
+                approach: Direction::ALL[i / 3],
+                movement: Movement::ALL[i % 3],
+            };
+            i += 1;
+        }
+        all
+    };
+
+    /// Builds a movement id.
+    #[must_use]
+    pub const fn new(approach: Direction, movement: Movement) -> Self {
+        Self { approach, movement }
+    }
+
+    /// Dense index in `0..12`, matching [`MovementId::ALL`].
+    #[must_use]
+    pub const fn index(self) -> usize {
+        self.approach.index() * 3 + self.movement.index()
+    }
+
+    /// Whether two movements cannot be green together: their paths cross, or they
+    /// exit to the same side. Right-hand traffic, protected turns only (a left turn
+    /// yields to nobody, so it conflicts with every movement it could meet).
+    ///
+    /// The relation is irreflexive and symmetric, and two movements of the same
+    /// approach never conflict. For a movement from approach `d`, *opposing* is the
+    /// approach across (`d` rotated by 2), *left-side* is the approach on the
+    /// driver's left (rotated by 1, for example east for north) and *right-side*
+    /// is the approach on the driver's right (rotated by 3). The conflicts are:
+    ///
+    /// | Movement from `d` | Opposing | Left-side | Right-side |
+    /// |---|---|---|---|
+    /// | `Left` | `Through`, `Right` | `Through`, `Left` | `Through`, `Left` |
+    /// | `Through` | `Left` | `Through`, `Left` | `Through`, `Left`, `Right` |
+    /// | `Right` | `Left` | `Through` | none |
+    ///
+    /// That is 14 conflicts per approach and 28 unordered conflicting pairs.
+    #[must_use]
+    pub const fn conflicts_with(self, other: MovementId) -> bool {
+        use Movement::{Left, Right, Through};
+        // Clockwise quarter turns from `self.approach` to `other.approach`.
+        let rel = (other.approach.index() + 4 - self.approach.index()) % 4;
+        matches!(
+            (self.movement, rel, other.movement),
+            (Left, 2, Through | Right)
+                | (Left | Through, 1 | 3, Through | Left)
+                | (Through | Right, 2, Left)
+                | (Through, 3, Right)
+                | (Right, 1, Through)
+        )
+    }
+}
+
+impl fmt::Display for MovementId {
+    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
+        write!(f, "{}.{}", self.approach, self.movement)
     }
 }
 
@@ -317,8 +418,11 @@ pub struct LaneConfig {
 
 /// Why a config could not be loaded.
 ///
-/// Validation stops at the first error, checking the cell length, then the
-/// approaches in [`Direction::ALL`] order, then lanes in index order.
+/// Validation stops at the first error. For an intersection it checks the cell
+/// length, then the approaches in [`Direction::ALL`] order, then lanes in index
+/// order. A scenario checks `step_s`, the intersection (paths prefixed with
+/// `intersection.`), the signal timings, the phases, movement coverage and the
+/// max-red feasibility rule, in that order.
 #[derive(Debug, Clone, PartialEq, thiserror::Error)]
 #[non_exhaustive]
 pub enum ConfigError {
@@ -326,8 +430,10 @@ pub enum ConfigError {
     #[error("invalid config: {0}")]
     Parse(#[from] toml::de::Error),
     /// `cell_length_m` is not finite and strictly positive.
-    #[error("cell_length_m must be finite and greater than 0, got {value}")]
+    #[error("{path} must be finite and greater than 0, got {value}")]
     InvalidCellLength {
+        /// Field path.
+        path: String,
         /// The offending value.
         value: f64,
     },
@@ -390,6 +496,123 @@ pub enum ConfigError {
         /// Smallest movement of the right lane.
         right_min: Movement,
     },
+    /// `step_s` is not finite and strictly positive.
+    #[error("step_s must be finite and greater than 0, got {value}")]
+    InvalidStepLength {
+        /// The offending value.
+        value: f64,
+    },
+    /// A signal duration is not finite, or is negative.
+    #[error("{path} must be finite and not negative, got {value}")]
+    InvalidDuration {
+        /// Field path.
+        path: String,
+        /// The offending value, in seconds.
+        value: f64,
+    },
+    /// A signal duration converts to too few or too many steps.
+    #[error(
+        "{path} = {value} s is {steps} steps of {step_s} s; it must be between {min_steps} and {} steps",
+        u32::MAX
+    )]
+    DurationOutOfRange {
+        /// Field path.
+        path: String,
+        /// The offending value, in seconds.
+        value: f64,
+        /// The simulation step, in seconds.
+        step_s: f64,
+        /// The converted number of steps (rounded as the field requires).
+        steps: f64,
+        /// The smallest allowed number of steps.
+        min_steps: u32,
+    },
+    /// The plan has no phases or more than [`MAX_PHASES`](crate::MAX_PHASES).
+    #[error(
+        "{path} must have between 1 and {} phases, got {count}",
+        crate::MAX_PHASES
+    )]
+    PhaseCount {
+        /// Field path.
+        path: String,
+        /// The number of phases.
+        count: usize,
+    },
+    /// A phase name is empty.
+    #[error("{path} must not be empty")]
+    EmptyPhaseName {
+        /// Field path.
+        path: String,
+    },
+    /// Two phases have the same name.
+    #[error("{path}: another phase is already named \"{name}\"")]
+    DuplicatePhaseName {
+        /// Field path.
+        path: String,
+        /// The repeated name.
+        name: String,
+    },
+    /// A phase grants no movement.
+    #[error("{path} must grant at least one movement")]
+    EmptyPhase {
+        /// Field path of the phase's `green` table.
+        path: String,
+    },
+    /// A phase lists the same movement twice for an approach.
+    #[error("{path} lists \"{movement}\" more than once")]
+    DuplicatePhaseMovement {
+        /// Field path of the repeated entry.
+        path: String,
+        /// The repeated movement.
+        movement: Movement,
+    },
+    /// A phase grants a movement that no lane of the approach allows.
+    #[error("{path}: no lane of that approach allows \"{movement}\"")]
+    MovementNotInGeometry {
+        /// Field path of the entry.
+        path: String,
+        /// The movement.
+        movement: Movement,
+    },
+    /// A phase grants two movements that conflict.
+    #[error("{path}: {first} and {second} conflict and cannot be green together")]
+    ConflictingMovements {
+        /// Field path of the phase's `green` table.
+        path: String,
+        /// The first movement, in [`MovementId::ALL`] order.
+        first: MovementId,
+        /// The second movement.
+        second: MovementId,
+    },
+    /// Two phases grant exactly the same movements.
+    #[error("{path} grants the same movements as phase \"{other}\"")]
+    DuplicatePhase {
+        /// Field path of the phase's `green` table.
+        path: String,
+        /// The name of the earlier phase.
+        other: String,
+    },
+    /// A movement that some lane allows is never green.
+    #[error("no phase grants {movement}, which a lane of the intersection allows")]
+    UncoveredMovement {
+        /// The first uncovered movement, in [`MovementId::ALL`] order.
+        movement: MovementId,
+    },
+    /// `max_red_s` is too short for the phases to take turns.
+    #[error(
+        "signal.max_red_s is too short: {phases} phases need at least {required_s} s ({required_steps} steps) \
+         to serve all of them, but it converts to {got_steps} steps"
+    )]
+    MaxRedTooShort {
+        /// The number of phases.
+        phases: usize,
+        /// The required minimum, in seconds.
+        required_s: f64,
+        /// The required minimum, in steps.
+        required_steps: u64,
+        /// What `max_red_s` converts to, in steps.
+        got_steps: u32,
+    },
 }
 
 impl IntersectionConfig {
@@ -421,11 +644,20 @@ impl IntersectionConfig {
     ///
     /// Returns the first [`ConfigError`] found.
     pub fn validate(&self) -> Result<Intersection, ConfigError> {
+        self.validate_at("")
+    }
+
+    /// Like [`validate`](Self::validate), with `prefix` (for example
+    /// `"intersection."`) put in front of every field path in errors.
+    pub(crate) fn validate_at(&self, prefix: &str) -> Result<Intersection, ConfigError> {
         let cell = self.cell_length_m;
         if !(cell.is_finite() && cell > 0.0) {
-            return Err(ConfigError::InvalidCellLength { value: cell });
+            return Err(ConfigError::InvalidCellLength {
+                path: format!("{prefix}cell_length_m"),
+                value: cell,
+            });
         }
-        let build = |d: Direction| validate_approach(d, self.approaches.get(d), cell);
+        let build = |d: Direction| validate_approach(d, self.approaches.get(d), cell, prefix);
         Ok(Intersection {
             cell_length_m: cell,
             approaches: [
@@ -442,8 +674,9 @@ fn validate_approach(
     direction: Direction,
     config: &ApproachConfig,
     cell_length_m: f64,
+    prefix: &str,
 ) -> Result<Approach, ConfigError> {
-    let base = format!("approaches.{direction}");
+    let base = format!("{prefix}approaches.{direction}");
 
     let length = config.length_m;
     if !(length.is_finite() && length > 0.0) {

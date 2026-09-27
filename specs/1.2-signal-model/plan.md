@@ -10,51 +10,51 @@ See [spec.md](spec.md) for scope and acceptance criteria, and [requirements.md](
 ## Tasks
 
 ### 1. Dependencies
-- [ ] Add `proptest = "1"` to `[workspace.dependencies]` and to `[dev-dependencies]` of `crates/sim` with `.workspace = true` ([R1.1](requirements.md#r1-dependencies)).
-- [ ] Run `cargo deny --locked check` (R1.3).
+- [x] Add `proptest = "1"` to `[workspace.dependencies]` and to `[dev-dependencies]` of `crates/sim` with `.workspace = true` ([R1.1](requirements.md#r1-dependencies)).
+- [x] Run `cargo deny --locked check` (R1.3).
 
 ### 2. Movements and conflicts
-- [ ] Add `MovementId { approach, movement }` with `ALL`, `index()`, and `Display` (for example `north.left`) ([R2.1](requirements.md#r2-movements-and-the-conflict-matrix)). It can live in `road.rs` next to `Direction` and `Movement`, or in a new `signal` module.
-- [ ] Add a small rotation helper on `Direction` (for example `rotate_cw(self, n)`), and reuse it in `destination` if it simplifies that.
-- [ ] Implement `conflicts_with` with the relative-position rule of R2.4: compute whether `other.approach` is opposing, left-side, or right-side of `self.approach`, then look up a 3×3 table (R2.2–R2.4).
-- [ ] Put the R2.4 table in rustdoc.
+- [x] Add `MovementId { approach, movement }` with `ALL`, `index()`, and `Display` (for example `north.left`) ([R2.1](requirements.md#r2-movements-and-the-conflict-matrix)). It can live in `road.rs` next to `Direction` and `Movement`, or in a new `signal` module.
+- [x] Add a small rotation helper on `Direction` (for example `rotate_cw(self, n)`), and reuse it in `destination` if it simplifies that.
+- [x] Implement `conflicts_with` with the relative-position rule of R2.4: compute whether `other.approach` is opposing, left-side, or right-side of `self.approach`, then look up a 3×3 table (R2.2–R2.4).
+- [x] Put the R2.4 table in rustdoc.
 
 ### 3. Scenario config and time
-- [ ] Create a `scenario` module with `ScenarioConfig { step_s, intersection: IntersectionConfig, signal: SignalConfig }`, `SignalConfig { yellow_s, all_red_s, min_green_s, max_red_s, phases: Vec<PhaseConfig> }`, `PhaseConfig { name, green: GreenConfig }`, and `GreenConfig { north, east, south, west }` with `#[serde(default)]` on each `Vec<Movement>` field ([R3.1](requirements.md#r3-scenario-config-and-time)).
-- [ ] Add `skip_serializing_if = "Vec::is_empty"` on the `GreenConfig` fields so round-tripped TOML stays tidy (R3.6).
-- [ ] Write a `to_steps(value_s, step_s, Rounding::Up | Rounding::Down) -> Option<u32>` helper with the `1e-9` snap and range checks (R3.4).
-- [ ] `Scenario { step_s, intersection, signal_plan }` with `from_toml_str`, `TryFrom<ScenarioConfig>`, and `to_config` (R3.5, R3.6).
+- [x] Create a `scenario` module with `ScenarioConfig { step_s, intersection: IntersectionConfig, signal: SignalConfig }`, `SignalConfig { yellow_s, all_red_s, min_green_s, max_red_s, phases: Vec<PhaseConfig> }`, `PhaseConfig { name, green: GreenConfig }`, and `GreenConfig { north, east, south, west }` with `#[serde(default)]` on each `Vec<Movement>` field ([R3.1](requirements.md#r3-scenario-config-and-time)).
+- [x] Add `skip_serializing_if = "Vec::is_empty"` on the `GreenConfig` fields so round-tripped TOML stays tidy (R3.6).
+- [x] Write a `to_steps(value_s, step_s, Rounding::Up | Rounding::Down) -> Option<u32>` helper with the `1e-9` snap and range checks (R3.4).
+- [x] `Scenario { step_s, intersection, signal_plan }` with `from_toml_str`, `TryFrom<ScenarioConfig>`, and `to_config` (R3.5, R3.6).
 
 ### 4. Validation
-- [ ] Add the new `ConfigError` variants, for example `InvalidStepLength`, `InvalidDuration { path, value }`, `PhaseCount { path, count }`, `EmptyPhaseName { path }`, `DuplicatePhaseName { path, name }`, `EmptyPhase { path }`, `DuplicatePhaseMovement { path, movement }`, `MovementNotInGeometry { path, movement }`, `ConflictingMovements { path, first, second }`, `DuplicatePhase { path, other }`, `UncoveredMovement { movement }`, `MaxRedTooShort { required_s, required_steps, got_steps }` ([R4](requirements.md#r4-signal-plan-validation)).
-- [ ] Prefix intersection errors with `intersection.` when validating a scenario. The simplest way is to pass a path prefix into the 1.1 validation, keeping the bare-intersection paths unchanged (R3.7).
-- [ ] Implement the checks in the fixed order of R4.
-- [ ] `MAX_PHASES = 8`, exported from the crate root.
+- [x] Add the new `ConfigError` variants, for example `InvalidStepLength`, `InvalidDuration { path, value }`, `PhaseCount { path, count }`, `EmptyPhaseName { path }`, `DuplicatePhaseName { path, name }`, `EmptyPhase { path }`, `DuplicatePhaseMovement { path, movement }`, `MovementNotInGeometry { path, movement }`, `ConflictingMovements { path, first, second }`, `DuplicatePhase { path, other }`, `UncoveredMovement { movement }`, `MaxRedTooShort { required_s, required_steps, got_steps }` ([R4](requirements.md#r4-signal-plan-validation)).
+- [x] Prefix intersection errors with `intersection.` when validating a scenario. The simplest way is to pass a path prefix into the 1.1 validation, keeping the bare-intersection paths unchanged (R3.7).
+- [x] Implement the checks in the fixed order of R4.
+- [x] `MAX_PHASES = 8`, exported from the crate root.
 
 ### 5. Signal state machine
-- [ ] `SignalPlan` (validated, immutable) and `PhaseId` ([R5.1](requirements.md#r5-signal-state-machine)).
-- [ ] `Signal`, `Command`, `StepOutcome` (with an `IgnoredReason` enum), `Light`, and a public `SignalState` enum (`Green { phase, elapsed }`, `Yellow { from, to, elapsed }`, `AllRed { from, to, elapsed }`) (R5.2, R5.3).
-- [ ] Keep per-phase red ages in a `Vec<u32>` indexed by `PhaseId`, and per-movement red runs in `[u32; 12]`. Store phase membership as a 12-bit mask (`u16`) so `p ∩ k` and conflict checks are bit operations.
-- [ ] Transition logic with the overlap rule (R5.4, R5.5). Document the step conventions in rustdoc (R5.6).
+- [x] `SignalPlan` (validated, immutable) and `PhaseId` ([R5.1](requirements.md#r5-signal-state-machine)).
+- [x] `Signal`, `Command`, `StepOutcome` (with an `IgnoredReason` enum), `Light`, and a public `SignalState` enum (`Green { phase, elapsed }`, `Yellow { from, to, elapsed }`, `AllRed { from, to, elapsed }`) (R5.2, R5.3).
+- [x] Keep per-phase red ages in a `Vec<u32>` indexed by `PhaseId`, and per-movement red runs in `[u32; 12]`. Store phase membership as a 12-bit mask (`u16`) so `p ∩ k` and conflict checks are bit operations.
+- [x] Transition logic with the overlap rule (R5.4, R5.5). Document the step conventions in rustdoc (R5.6).
 
 ### 6. Max-red enforcement
-- [ ] A private `schedule_is_feasible(first: PhaseId) -> bool` that sorts the other phases by red age (descending, ties by `PhaseId`) and checks each deadline with the formula of R6.3. With at most 8 phases this is cheap enough to run every step.
-- [ ] Use it both for the admission check (R6.3) and the forced switch (R6.4), and base `can_switch_to` on the same code path as `step` (R6.5).
-- [ ] Handle the single-phase plan (R6.6).
+- [x] A private `schedule_is_feasible(first: PhaseId) -> bool` that sorts the other phases by red age (descending, ties by `PhaseId`) and checks each deadline with the formula of R6.3. With at most 8 phases this is cheap enough to run every step.
+- [x] Use it both for the admission check (R6.3) and the forced switch (R6.4), and base `can_switch_to` on the same code path as `step` (R6.5).
+- [x] Handle the single-phase plan (R6.6).
 
 ### 7. Example config and tests
-- [ ] Update `configs/single-intersection.toml` to the scenario layout and extend its comment header ([R7.1](requirements.md#r7-example-config-and-tests)).
-- [ ] Update `crates/sim/tests/road.rs` to take the example's `intersection` table, for example by parsing the scenario, or with `toml::Value` if you want the road tests to stay independent of the scenario module (R7.4).
-- [ ] Add `crates/sim/tests/signal.rs` (or `conflicts.rs`, `scenario.rs`, `signal.rs`) with the unit tests of R7.2.
-- [ ] Add property tests (R7.3). Write the invariant checks as a function over a recorded `Vec<[Light; 12]>` trace, so unit tests can reuse them. Generate timings in steps directly and derive seconds with `step_s = 1.0`, keeping only those that pass R4.10.
+- [x] Update `configs/single-intersection.toml` to the scenario layout and extend its comment header ([R7.1](requirements.md#r7-example-config-and-tests)).
+- [x] Update `crates/sim/tests/road.rs` to take the example's `intersection` table, for example by parsing the scenario, or with `toml::Value` if you want the road tests to stay independent of the scenario module (R7.4).
+- [x] Add `crates/sim/tests/signal.rs` (or `conflicts.rs`, `scenario.rs`, `signal.rs`) with the unit tests of R7.2.
+- [x] Add property tests (R7.3). Write the invariant checks as a function over a recorded `Vec<[Light; 12]>` trace, so unit tests can reuse them. Generate timings in steps directly and derive seconds with `step_s = 1.0`, keeping only those that pass R4.10.
 
 ### 8. ADR-0003
-- [ ] Copy `specs/adr/0000-template.md` to `specs/adr/0003-signal-safety-model.md` and fill it in ([R8.1](requirements.md#r8-adr-docs-and-roadmap)).
-- [ ] Add it to the index table in `specs/adr/README.md` (R8.2).
+- [x] Copy `specs/adr/0000-template.md` to `specs/adr/0003-signal-safety-model.md` and fill it in ([R8.1](requirements.md#r8-adr-docs-and-roadmap)).
+- [x] Add it to the index table in `specs/adr/README.md` (R8.2).
 
 ### 9. Docs and roadmap
-- [ ] Update the `configs/` line in the README (R8.3).
-- [ ] Mark 1.2 as ☑ in `specs/roadmap.md` and set the spec status to ☑ done (R8.4).
+- [x] Update the `configs/` line in the README (R8.3).
+- [x] Mark 1.2 as ☑ in `specs/roadmap.md` and set the spec status to ☑ done (R8.4).
 
 ### 10. Verify locally
 

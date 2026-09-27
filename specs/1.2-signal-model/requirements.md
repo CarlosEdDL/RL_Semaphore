@@ -23,7 +23,7 @@ The key words MUST, MUST NOT, SHOULD, SHOULD NOT and MAY are to be interpreted a
   | `Through` | `Left` | `Through`, `Left` | `Through`, `Left`, `Right` |
   | `Right` | `Left` | `Through` | none |
 
-  This gives 13 conflicts per approach and 26 unordered conflicting pairs in total. Rustdoc MUST include this table. The implementation SHOULD use the relative-position rule (rotation) rather than a 144-entry literal, but tests MUST check all 144 ordered pairs.
+  This gives 14 conflicts per approach and 28 unordered conflicting pairs in total. Rustdoc MUST include this table. The implementation SHOULD use the relative-position rule (rotation) rather than a 144-entry literal, but tests MUST check all 144 ordered pairs.
 
 ## R3. Scenario config and time
 
@@ -75,13 +75,13 @@ Validation MUST stop at the first error and check in this fixed order: `step_s`,
 - **R4.7** A phase MUST NOT grant two conflicting movements. The error MUST name both.
 - **R4.8** Two phases MUST NOT grant the same set of movements.
 - **R4.9** Every movement allowed by some lane of the intersection MUST be granted by at least one phase. The error MUST name the first uncovered movement in `MovementId::ALL` order.
-- **R4.10** With `n` phases, `G` = min-green, `Y` = yellow, `A` = all-red, and `M` = max-red, all in steps, the plan MUST satisfy `M ≥ (n − 1) × (G + Y + A)`. The error MUST show the required minimum in seconds and in steps.
+- **R4.10** With `n` phases, `G` = min-green, `Y` = yellow, `A` = all-red, and `M` = max-red, all in steps, the plan MUST satisfy `M ≥ n × (Y + A) + (n − 1) × G` (a phase that starts leaving green at step *t* is next green at *t* + `n(Y+A)` + `(n−1)G` at the earliest). It applies only when `n ≥ 2`. The error MUST show the required minimum in seconds and in steps.
 - **R4.11** Validation MUST NOT panic on any input.
 
 ## R5. Signal state machine
 
 - **R5.1** The validated `SignalPlan` MUST be immutable, with private fields and read-only accessors: its phases (name and granted movements), timings in steps, and a `PhaseId` for each phase. `PhaseId` MUST be a `Copy + Ord` newtype over the phase index.
-- **R5.2** A runtime `Signal` MUST be built from a `SignalPlan` and start in green on the initial phase with all other phases' red ages at 0. It MUST expose at least:
+- **R5.2** A runtime `Signal` MUST be built from a `SignalPlan` and start in green on the initial phase. Red ages count entries in which a phase is not green, so the initial phase has age 0 and every other phase has age 1 at step 0. It MUST expose at least:
   - `step(&mut self, command: Command) -> StepOutcome`, advancing exactly one time step;
   - `light(MovementId) -> Light` where `Light` is `Green`, `Yellow`, or `Red`, and `lights() -> [Light; 12]` indexed by `MovementId::index()`;
   - the current state: green on a phase (with steps elapsed), or a transition (from, to, yellow or all-red, steps elapsed);
@@ -95,9 +95,9 @@ Validation MUST stop at the first error and check in this fixed order: `step_s`,
 
 ## R6. Max-red enforcement
 
-- **R6.1** A phase's red age is the number of steps since it last stopped being the green phase (the moment its transition began), or since step 0 if it has never been green. It is 0 while the phase is green.
+- **R6.1** A phase's red age is the number of consecutive entries, including the current one, in which it is not the green phase (counting from the step where its transition began, or from step 0 if it has never been green). It is 0 while the phase is green.
 - **R6.2** The signal MUST guarantee that, for any command sequence, every phase becomes green again within `max_red` steps of its red age starting, and so no movement is shown red for more than `max_red` consecutive steps.
-- **R6.3** Admission check: a switch from `p` to `k` MUST be accepted only if, after serving `k` for `min_green`, every other phase can still be reached in time when served in descending red-age order (ties by lowest `PhaseId`), with each switch costing `yellow + all_red` steps and each phase then held for `min_green`. Concretely, if the remaining phases are `j1, j2, …` in that order, `j_i` turns green at `now + (i + 1) × (Y + A) + i × G` (with `now` the current step and the `k` service included), and its red age at that moment MUST be at most `M`.
+- **R6.3** Admission check: a switch from `p` to `k` MUST be accepted only if, after serving `k` for `min_green`, every other phase can still be reached in time when served in descending red-age order (ties by lowest `PhaseId`), with each switch costing `yellow + all_red` steps and each phase then held for `min_green`. Concretely, if the remaining phases are `j1, j2, …` in that order, `j_i` turns green at `now + 1 + (i + 1) × (Y + A) + i × G` (with `now` the current step and the `k` service included), and its red age at the entry before that MUST be at most `M`, that is `age(j_i) + (i + 1)(Y + A) + i·G ≤ M`. The requested phase `k` is checked too (`i = 0`).
 - **R6.4** Forced switch: while green on `p` with at least `min_green` steps elapsed, if holding one more step would make the schedule of R6.3 (starting with the longest-red phase) infeasible, the signal MUST start a transition to the longest-red phase (ties by lowest `PhaseId`), whatever the command, and report it as forced.
 - **R6.5** `can_switch_to(k)` MUST return exactly whether `step(SwitchTo(k))` would start a transition to `k` right now. The env mask in 3.3 relies on this.
 - **R6.6** With a single phase, the signal stays green forever and every command other than `Hold` is ignored with a reason.
@@ -106,7 +106,7 @@ Validation MUST stop at the first error and check in this fixed order: `step_s`,
 
 - **R7.1** `configs/single-intersection.toml` MUST become a full scenario: `step_s`, the 1.1 geometry under `[intersection]`, and a `[signal]` table with four phases: north/south left turns, north/south through and right, east (all movements), and west (all movements). The side road needs split phases because its single shared lane carries left turns that conflict with opposing through traffic. Suggested timings: `step_s = 1.0`, `yellow_s = 3.0`, `all_red_s = 2.0`, `min_green_s = 5.0`, `max_red_s = 90.0`. The comment header MUST document the new keys, units, and rounding.
 - **R7.2** Unit tests MUST cover:
-  - the conflict matrix: all 144 ordered pairs against R2.4, symmetry, irreflexivity, same-approach pairs, and the count of 26;
+  - the conflict matrix: all 144 ordered pairs against R2.4, symmetry, irreflexivity, same-approach pairs, and the count of 28;
   - loading the example scenario (through `include_str!`) and checking phase names, granted movements, and step counts;
   - each rule in R4 with a failing inline config, matching the `ConfigError` variant and field path;
   - the seconds-to-steps conversion, including rounding direction and the `1e-9` snap;

@@ -4,10 +4,16 @@
 
 use rl_semaphore_sim::{ConfigError, Direction, Intersection, IntersectionConfig, Movement};
 
-const EXAMPLE: &str = include_str!(concat!(
+const EXAMPLE_SCENARIO: &str = include_str!(concat!(
     env!("CARGO_MANIFEST_DIR"),
     "/../../configs/single-intersection.toml"
 ));
+
+/// The `intersection` table of the example scenario, as a bare intersection document.
+fn example() -> String {
+    let scenario: toml::Table = EXAMPLE_SCENARIO.parse().unwrap();
+    toml::to_string(&scenario["intersection"]).unwrap()
+}
 
 /// A valid config with a replaceable north approach.
 fn config(north_lanes: &str, north_len: &str, cell: &str) -> String {
@@ -36,7 +42,7 @@ fn err(toml: &str) -> ConfigError {
 
 #[test]
 fn example_config_loads() {
-    let x = Intersection::from_toml_str(EXAMPLE).unwrap();
+    let x = Intersection::from_toml_str(&example()).unwrap();
     assert_eq!(x.approaches().count(), 4);
     let lanes = |d| x.approach(d).lanes();
     assert_eq!(lanes(Direction::North).len(), 2);
@@ -58,7 +64,7 @@ fn example_config_loads() {
 
 #[test]
 fn stop_line_is_last_cell() {
-    let x = Intersection::from_toml_str(EXAMPLE).unwrap();
+    let x = Intersection::from_toml_str(&example()).unwrap();
     let lane = &x.approach(Direction::North).lanes()[0];
     assert_eq!(lane.stop_line_cell(), lane.len_cells() - 1);
     assert_eq!(lane.id().approach(), Direction::North);
@@ -98,7 +104,7 @@ fn destination_all_pairs() {
 
 #[test]
 fn round_trip() {
-    let x = Intersection::from_toml_str(EXAMPLE).unwrap();
+    let x = Intersection::from_toml_str(&example()).unwrap();
     let text = x.to_config().to_toml_string().unwrap();
     let again = Intersection::from_toml_str(&text).unwrap();
     assert_eq!(x, again);
@@ -224,9 +230,9 @@ lanes = [ { movements = ["through"] } ]
     // Unknown field.
     let unknown = format!(
         "{}\nextra = 1\n",
-        EXAMPLE.replace("[approaches.north]", "[approaches.north]\nfoo = 1")
+        example().replace("[approaches.north]", "[approaches.north]\nfoo = 1")
     );
     assert!(matches!(err(&unknown), ConfigError::Parse(_)));
-    let unknown_top = format!("extra = 1\n{EXAMPLE}");
+    let unknown_top = format!("extra = 1\n{}", example());
     assert!(matches!(err(&unknown_top), ConfigError::Parse(_)));
 }
