@@ -47,7 +47,7 @@ The primary objective is to minimize average vehicle waiting time, subject to a 
 | `crates/web` | `rl-semaphore-web` | Leptos frontend compiled to WASM |
 | `crates/cli` | `rl-semaphore` | `rl-semaphore` binary (`simulate`, `train`, `eval`, `serve`) |
 
-Run configs live in `configs/`; `configs/single-intersection.toml` describes a full example scenario (time step, 4-way intersection geometry and signal plan) and documents the schema.
+Run configs live in `configs/`; `configs/single-intersection.toml` describes a full example scenario (time step, 4-way intersection geometry, signal plan, demand and fixed-time plan) and documents the schema.
 
 ## Getting started
 
@@ -56,6 +56,12 @@ Prerequisite: [`rustup`](https://rustup.rs). The pinned toolchain installs itsel
 ```sh
 cargo build
 cargo run -p rl-semaphore -- --help
+```
+
+Run the fixed-time baseline on the example scenario and print its metrics (`--steps` defaults to 3600 and `--seed` to 0; `--output json` prints one JSON document instead of the table):
+
+```sh
+cargo run --release -p rl-semaphore -- simulate --config configs/single-intersection.toml
 ```
 
 Logs go to stderr. Use `-v` / `-q` to change the level (or `RUST_LOG`), and `--log-format json` (or `RL_SEMAPHORE_LOG_FORMAT=json`) for one JSON object per line:
@@ -73,9 +79,23 @@ cargo nextest run --workspace --locked
 cargo test --workspace --doc --locked
 ```
 
+## Baseline
+
+The fixed-time controller on `configs/single-intersection.toml` (seed 0, 3,600 steps of 1 s, demand of 1,100 veh/h) gives the first baseline. Every later controller has to beat it on the mean **and** on the tail.
+
+| Metric | Value |
+|--------|-------|
+| Mean wait | 29.8 s |
+| p95 wait | 69.0 s |
+| p99 wait | 113.0 s |
+| Max wait | 152.0 s |
+| Throughput | 1,118 veh/h |
+
+The plan serves the phases in list order with 10 s (`ns-left`), 30 s (`ns-through`), 10 s (`east`) and 10 s (`west`) of green, an 80 s cycle. The side-road phases wait the most: the west approach has a mean wait of 49.3 s and a max of 152.0 s. The full table is in the snapshot `crates/cli/tests/snapshots/simulate_snapshot__text_output_is_pinned.snap`.
+
 ## Project status
 
-Stage 0, Foundations. See the [roadmap](specs/roadmap.md).
+Stage 1, Simulator: the road, signal, vehicles, demand, metrics and the fixed-time baseline with `simulate` are done. Next is the simulator benchmark (1.7). See the [roadmap](specs/roadmap.md).
 
 ## Documentation
 

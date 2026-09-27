@@ -19,7 +19,7 @@ Legend: ☐ not started · ◐ in progress · ☑ done
 - ☑ **1.3 Vehicles & movement.** Spawn, advance, queue at red, and cross on green in a fixed time step. Property tests: vehicles are conserved and never overlap.
 - ☑ **1.4 Demand generation.** Seeded Poisson arrivals per approach. A determinism test (same seed produces an identical trajectory, checked with an `insta` snapshot).
 - ☑ **1.5 Metrics.** Per-vehicle wait tracking, and mean / p95 / p99 / max wait, throughput, and queue length per episode.
-- ☐ **1.6 Fixed-time controller + CLI.** `rl-semaphore simulate` runs N steps and prints metrics. This is the first baseline number.
+- ☑ **1.6 Fixed-time controller + CLI.** `rl-semaphore simulate` runs N steps and prints metrics. This is the first baseline number.
 - ☐ **1.7 Sim benchmark.** A `criterion` benchmark for steps/sec, recorded in the README.
 
 ## Stage 2: Visualization of the simulator

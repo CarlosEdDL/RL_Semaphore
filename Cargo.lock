@@ -460,6 +460,10 @@ version = "0.1.0"
 dependencies = [
  "anyhow",
  "clap",
+ "insta",
+ "rl-semaphore-env",
+ "rl-semaphore-sim",
+ "serde",
  "serde_json",
  "tracing",
  "tracing-subscriber",
@@ -472,6 +476,11 @@ version = "0.1.0"
 [[package]]
 name = "rl-semaphore-env"
 version = "0.1.0"
+dependencies = [
+ "proptest",
+ "rl-semaphore-sim",
+ "thiserror",
+]
 
 [[package]]
 name = "rl-semaphore-protocol"

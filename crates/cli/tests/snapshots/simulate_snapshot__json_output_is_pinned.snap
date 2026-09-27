@@ -1,0 +1,147 @@
+---
+source: crates/cli/tests/simulate_snapshot.rs
+expression: "simulate(\"json\")"
+---
+{
+  "schema_version": 1,
+  "config": "configs/single-intersection.toml",
+  "seed": 0,
+  "steps": 3600,
+  "step_s": 1.0,
+  "controller": {
+    "kind": "fixed_time",
+    "phases": [
+      {
+        "name": "ns-left",
+        "green_s": 10.0
+      },
+      {
+        "name": "ns-through",
+        "green_s": 30.0
+      },
+      {
+        "name": "east",
+        "green_s": 10.0
+      },
+      {
+        "name": "west",
+        "green_s": 10.0
+      }
+    ],
+    "cycle_s": 80.0
+  },
+  "summary": {
+    "steps": 3600,
+    "duration_s": 3600.0,
+    "departed": 1118,
+    "in_system": 13,
+    "throughput_veh_per_h": 1118.0,
+    "wait": {
+      "count": 1131,
+      "mean_s": 29.822281167108752,
+      "p50_s": 27.0,
+      "p95_s": 69.0,
+      "p99_s": 113.0,
+      "max_s": 152.0
+    },
+    "wait_by_approach": {
+      "north": {
+        "count": 411,
+        "mean_s": 23.313868613138688,
+        "p50_s": 21.0,
+        "p95_s": 56.0,
+        "p99_s": 65.0,
+        "max_s": 70.0
+      },
+      "east": {
+        "count": 148,
+        "mean_s": 39.96621621621622,
+        "p50_s": 38.0,
+        "p95_s": 84.0,
+        "p99_s": 115.0,
+        "max_s": 117.0
+      },
+      "south": {
+        "count": 416,
+        "mean_s": 25.353365384615383,
+        "p50_s": 24.0,
+        "p95_s": 60.0,
+        "p99_s": 69.0,
+        "max_s": 104.0
+      },
+      "west": {
+        "count": 156,
+        "mean_s": 49.26282051282051,
+        "p50_s": 46.0,
+        "p95_s": 109.0,
+        "p99_s": 138.0,
+        "max_s": 152.0
+      }
+    },
+    "queue_by_lane": [
+      {
+        "approach": "north",
+        "lane": 0,
+        "mean": 0.7663888888888889,
+        "max": 4
+      },
+      {
+        "approach": "north",
+        "lane": 1,
+        "mean": 1.8952777777777778,
+        "max": 11
+      },
+      {
+        "approach": "east",
+        "lane": 0,
+        "mean": 1.6430555555555555,
+        "max": 9
+      },
+      {
+        "approach": "south",
+        "lane": 0,
+        "mean": 0.9113888888888889,
+        "max": 7
+      },
+      {
+        "approach": "south",
+        "lane": 1,
+        "mean": 2.0183333333333335,
+        "max": 16
+      },
+      {
+        "approach": "west",
+        "lane": 0,
+        "mean": 2.1347222222222224,
+        "max": 11
+      }
+    ],
+    "queue_by_approach": {
+      "north": {
+        "mean": 2.6616666666666666,
+        "max": 11
+      },
+      "east": {
+        "mean": 1.6430555555555555,
+        "max": 9
+      },
+      "south": {
+        "mean": 2.9297222222222223,
+        "max": 16
+      },
+      "west": {
+        "mean": 2.1347222222222224,
+        "max": 11
+      }
+    },
+    "queue_total": {
+      "mean": 9.369166666666667,
+      "max": 26
+    }
+  },
+  "signal": {
+    "switches_started": 180,
+    "switches_forced": 0,
+    "commands_ignored": 0
+  }
+}

@@ -1,12 +1,15 @@
 //! `rl-semaphore` command-line entry point.
 
 mod logging;
+mod report;
+mod simulate;
 
 use std::process::ExitCode;
 
 use clap::{ArgAction, Parser, Subcommand};
 
 use crate::logging::LogFormat;
+use crate::simulate::SimulateArgs;
 
 /// Train and evaluate RL agents that control simulated traffic lights.
 #[derive(Debug, Parser)]
@@ -37,7 +40,7 @@ struct Cli {
 #[derive(Debug, Subcommand)]
 enum Command {
     /// Run the traffic simulator with a baseline controller and print metrics
-    Simulate,
+    Simulate(SimulateArgs),
     /// Train an RL agent from a config file
     Train,
     /// Evaluate a policy or baseline over several seeds
@@ -49,7 +52,7 @@ enum Command {
 impl Command {
     fn name(&self) -> &'static str {
         match self {
-            Self::Simulate => "simulate",
+            Self::Simulate(_) => "simulate",
             Self::Train => "train",
             Self::Eval => "eval",
             Self::Serve => "serve",
@@ -59,7 +62,8 @@ impl Command {
 
 fn run(cli: &Cli) -> anyhow::Result<()> {
     match &cli.command {
-        Command::Simulate | Command::Train | Command::Eval | Command::Serve => {
+        Command::Simulate(args) => simulate::run(args),
+        Command::Train | Command::Eval | Command::Serve => {
             anyhow::bail!("{}: not implemented yet", cli.command.name())
         }
     }
@@ -100,28 +104,28 @@ mod tests {
     #[test]
     fn parses_each_subcommand() {
         let cases = [
-            ("simulate", "simulate"),
-            ("train", "train"),
-            ("eval", "eval"),
-            ("serve", "serve"),
+            (vec!["simulate", "--config", "x.toml"], "simulate"),
+            (vec!["train"], "train"),
+            (vec!["eval"], "eval"),
+            (vec!["serve"], "serve"),
         ];
-        for (arg, name) in cases {
-            let cli = Cli::try_parse_from(["rl-semaphore", arg]).unwrap();
+        for (args, name) in cases {
+            let cli = Cli::try_parse_from(["rl-semaphore"].into_iter().chain(args)).unwrap();
             assert_eq!(cli.command.name(), name);
         }
     }
 
     #[test]
     fn log_format_defaults_to_pretty() {
-        let cli = Cli::try_parse_from(["rl-semaphore", "simulate"]).unwrap();
+        let cli = Cli::try_parse_from(["rl-semaphore", "train"]).unwrap();
         assert_eq!(cli.log_format, LogFormat::Pretty);
     }
 
     #[test]
     fn parses_log_format_before_and_after_subcommand() {
         for args in [
-            ["rl-semaphore", "--log-format", "json", "simulate"],
-            ["rl-semaphore", "simulate", "--log-format", "json"],
+            ["rl-semaphore", "--log-format", "json", "train"],
+            ["rl-semaphore", "train", "--log-format", "json"],
         ] {
             let cli = Cli::try_parse_from(args).unwrap();
             assert_eq!(cli.log_format, LogFormat::Json);
@@ -130,7 +134,7 @@ mod tests {
 
     #[test]
     fn rejects_unknown_log_format() {
-        assert!(Cli::try_parse_from(["rl-semaphore", "--log-format", "xml", "simulate"]).is_err());
+        assert!(Cli::try_parse_from(["rl-semaphore", "--log-format", "xml", "train"]).is_err());
     }
 
     #[test]
@@ -143,7 +147,7 @@ mod tests {
             (vec!["--verbose", "--quiet", "--quiet"], (1, 2)),
         ];
         for (flags, expected) in cases {
-            let mut args = vec!["rl-semaphore", "simulate"];
+            let mut args = vec!["rl-semaphore", "train"];
             args.extend(flags);
             let cli = Cli::try_parse_from(args).unwrap();
             assert_eq!((cli.verbose, cli.quiet), expected);

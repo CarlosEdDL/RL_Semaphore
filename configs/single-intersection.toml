@@ -33,6 +33,13 @@
 #       left, through,  Fractions of the flow that make each movement; each optional (default 0)
 #       right           and within 0..=1. They must sum to 1 (within 1e-9), and a fraction above
 #                       0 needs a lane of that side that allows the movement.
+#   [fixed_time]        Optional. The timing plan of the fixed-time controller (`simulate` needs it).
+#     green_s           One green duration per phase, in seconds, in the order of
+#                       [[signal.phases]]. Each is finite, > 0 and converted like min_green_s
+#                       (rounded UP), so at least min_green_s. The controller serves the phases
+#                       in list order, each for its green, so the cycle is
+#                       sum(green + yellow + all_red). With two or more phases, no phase may
+#                       stay red longer than max_red_s: cycle - green[i] <= max_red steps.
 #
 # Layout: a two-lane main road (north/south) with a dedicated left-turn lane, and a
 # single-lane side road (east/west) where all movements share the lane. The side road
@@ -97,3 +104,10 @@ north = { veh_per_h = 400.0, left = 0.2, through = 0.7, right = 0.1 }
 south = { veh_per_h = 400.0, left = 0.2, through = 0.7, right = 0.1 }
 east  = { veh_per_h = 150.0, left = 0.2, through = 0.6, right = 0.2 }
 west  = { veh_per_h = 150.0, left = 0.2, through = 0.6, right = 0.2 }
+
+# Fixed-time plan: 10 s for each left-turn or side-road phase and 30 s for north-south
+# through, which carries most of the demand (800 of 1,100 veh/h). Each phase adds
+# 5 s of yellow and all-red, so the cycle is (10 + 30 + 10 + 10) + 4 * 5 = 80 s. The
+# longest a phase waits is 80 - 10 = 70 s, within max_red_s = 90.
+[fixed_time]
+green_s = [10.0, 30.0, 10.0, 10.0]
