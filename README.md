@@ -47,6 +47,8 @@ The primary objective is to minimize average vehicle waiting time, subject to a 
 | `crates/web` | `rl-semaphore-web` | Leptos frontend compiled to WASM |
 | `crates/cli` | `rl-semaphore` | `rl-semaphore` binary (`simulate`, `train`, `eval`, `serve`) |
 
+Run configs live in `configs/`; `configs/single-intersection.toml` describes the example 4-way intersection and documents the schema.
+
 ## Getting started
 
 Prerequisite: [`rustup`](https://rustup.rs). The pinned toolchain installs itself on first use.

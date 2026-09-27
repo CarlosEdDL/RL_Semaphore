@@ -45,7 +45,7 @@ The dependency direction is strict: `sim` ← `env` ← `agents` ← `trainer`. 
 ## Core technologies
 
 ### Simulation
-- **Custom Rust simulator** with a fixed time step, running on a discrete lane/cell or car-following model (decided in the simulator phase, starting simple).
+- **Custom Rust simulator** with a fixed time step, running on a discrete cell model: lanes are split into fixed-length cells with integer positions and one vehicle per cell ([ADR-0002](adr/0002-discrete-cell-model.md)).
 - **Determinism:** all randomness flows through a seeded `ChaCha8Rng`, and there is no dependency on wall-clock time or `HashMap` iteration order (use `BTreeMap`/`IndexMap`, or sorted keys, wherever order matters).
 - Grid-city presets (1×1, 2×2, 3×3, 5×5) defined in **TOML** configs.
 

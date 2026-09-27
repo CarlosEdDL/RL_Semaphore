@@ -8,5 +8,10 @@ repository.workspace = true
 authors.workspace = true
 publish = false
 
+[dependencies]
+serde.workspace = true
+toml.workspace = true
+thiserror.workspace = true
+
 [lints]
 workspace = true
