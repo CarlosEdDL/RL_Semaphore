@@ -12,8 +12,8 @@ use crate::snapshot::Snapshot;
 ///
 /// A connection sends exactly one [`Hello`] first, then any sequence of [`Snapshot`] and
 /// [`Metrics`] messages, each `Metrics` describing the same or an earlier step than the latest
-/// `Snapshot`. This phase only defines that order; 2.2 enforces it. There is no
-/// client-to-server message in this phase.
+/// `Snapshot`. See the crate docs for the full order the server (2.2) enforces, with episodes.
+/// There is no client-to-server message in this phase.
 #[derive(Debug, Clone, PartialEq, Serialize, Deserialize)]
 #[serde(tag = "type", rename_all = "snake_case")]
 // One message is held at a time (never a long-lived collection of them), so the size

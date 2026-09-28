@@ -14,6 +14,7 @@ authors = ["Carlos Duque"]
 rl-semaphore-sim = { path = "crates/sim", version = "0.1.0" }
 rl-semaphore-env = { path = "crates/env", version = "0.1.0" }
 rl-semaphore-protocol = { path = "crates/protocol", version = "0.1.0" }
+rl-semaphore-server = { path = "crates/server", version = "0.1.0" }
 clap = { version = "4", features = ["derive", "env"] }
 tracing = "0.1"
 tracing-subscriber = { version = "0.3", features = ["env-filter", "fmt", "json"] }
@@ -26,6 +27,12 @@ proptest = "1"
 rand_chacha = { version = "0.9", default-features = false }
 insta = "1"
 criterion = { version = "0.8", default-features = false, features = ["cargo_bench_support"] }
+axum = { version = "0.8", features = ["ws"] }
+tokio = { version = "1", features = ["rt-multi-thread", "net", "sync", "time", "macros", "signal"] }
+tower-http = { version = "0.7", features = ["trace"] }
+tokio-tungstenite = "0.29"
+futures-util = "0.3"
+tower = { version = "0.5", features = ["util"] }
 
 [workspace.lints.rust]
 unsafe_code = "forbid"

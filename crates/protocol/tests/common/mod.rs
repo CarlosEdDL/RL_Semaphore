@@ -145,6 +145,8 @@ fn empty_lanes() -> Vec<LaneState> {
 pub fn snapshot_empty(state: SignalStateView) -> Snapshot {
     Snapshot {
         step: 42,
+        episode: 0,
+        seed: 7,
         time_s: 42.0,
         signal: SignalView {
             state,
@@ -167,6 +169,8 @@ pub fn snapshot_busy(state: SignalStateView) -> Snapshot {
     lanes[1] = lane_state(Direction::North, 1, 3);
     Snapshot {
         step: 100,
+        episode: 3,
+        seed: 2024,
         time_s: 100.0,
         signal: SignalView {
             state,
@@ -208,6 +212,8 @@ pub fn queue_stats() -> QueueStats {
 pub fn metrics_mixed() -> Metrics {
     Metrics {
         step: 100,
+        episode: 3,
+        seed: 2024,
         time_s: 100.0,
         summary: Summary {
             steps: 100,

@@ -63,6 +63,44 @@ fn trailing_garbage_is_a_decode_error() {
 }
 
 #[test]
+fn snapshot_without_episode_and_seed_decodes_with_both_zero() {
+    let fixture = common::snapshot_green();
+    let mut value = serde_json::to_value(&fixture).expect("encode");
+    let map = value.as_object_mut().expect("object");
+    map.remove("episode");
+    map.remove("seed");
+    let text = serde_json::to_string(&value).expect("reencode");
+
+    let decoded = ServerMessage::from_json(&text).expect("decode");
+    match decoded {
+        ServerMessage::Snapshot(s) => {
+            assert_eq!(s.episode, 0);
+            assert_eq!(s.seed, 0);
+        }
+        other => panic!("expected a Snapshot message, got {other:?}"),
+    }
+}
+
+#[test]
+fn metrics_without_episode_and_seed_decodes_with_both_zero() {
+    let fixture = common::metrics();
+    let mut value = serde_json::to_value(&fixture).expect("encode");
+    let map = value.as_object_mut().expect("object");
+    map.remove("episode");
+    map.remove("seed");
+    let text = serde_json::to_string(&value).expect("reencode");
+
+    let decoded = ServerMessage::from_json(&text).expect("decode");
+    match decoded {
+        ServerMessage::Metrics(m) => {
+            assert_eq!(m.episode, 0);
+            assert_eq!(m.seed, 0);
+        }
+        other => panic!("expected a Metrics message, got {other:?}"),
+    }
+}
+
+#[test]
 fn check_version_accepts_current_and_rejects_other() {
     let good = Hello::new(common::layout());
     assert!(good.check_version().is_ok());

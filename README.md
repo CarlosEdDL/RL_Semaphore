@@ -70,13 +70,28 @@ Logs go to stderr. Use `-v` / `-q` to change the level (or `RUST_LOG`), and `--l
 cargo run -p rl-semaphore -- --log-format json -v simulate
 ```
 
+Start the Axum server: it streams the same fixed-time simulation live over a WebSocket, looping episode after episode, paced to wall-clock time times `--speed` (default `1`):
+
+```sh
+cargo run --release -p rl-semaphore -- serve --config configs/single-intersection.toml
+```
+
+Check it with `curl` and a WebSocket client such as [`websocat`](https://github.com/vi/websocat):
+
+```sh
+curl -s http://127.0.0.1:3000/healthz
+websocat ws://127.0.0.1:3000/ws | head -3
+```
+
 To reproduce CI locally (needs `cargo-nextest`):
 
 ```sh
 cargo fmt --all --check
 cargo clippy --workspace --all-targets --locked -- -D warnings
+cargo clippy -p rl-semaphore-protocol --all-targets --locked -- -D warnings
 cargo clippy -p rl-semaphore-protocol --all-targets --features sim --locked -- -D warnings
 cargo nextest run --workspace --locked
+cargo nextest run -p rl-semaphore-protocol --locked
 cargo nextest run -p rl-semaphore-protocol --features sim --locked
 cargo test --workspace --doc --locked
 cargo bench -p rl-semaphore-env --bench throughput --locked -- --test
@@ -115,7 +130,7 @@ Measured on an i7-12700 (20 threads), WSL2 on Windows, Rust 1.98.1, on 2026-09-2
 
 ## Project status
 
-Stage 1, Simulator, is done. Stage 2, Visualization of the simulator, has started: 2.1 (protocol crate) is done, giving the versioned `Hello`/`Snapshot`/`Metrics` DTOs the server and web will share. Next is 2.2 (Axum server). See the [roadmap](specs/roadmap.md).
+Stage 1, Simulator, is done. Stage 2, Visualization of the simulator, has started: 2.1 (protocol crate) and 2.2 (Axum server) are done, so `rl-semaphore serve` now streams a live, looping fixed-time simulation over `/healthz` and `/ws`. Next is 2.3 (Leptos app shell). See the [roadmap](specs/roadmap.md).
 
 ## Documentation
 

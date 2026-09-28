@@ -169,6 +169,9 @@ fn signal_state(state: sim::SignalState, step_s: f64) -> SignalStateView {
 impl Snapshot {
     /// Builds the dynamic state of `sim` after its most recent step (or the initial state at
     /// step 0).
+    ///
+    /// `episode` and `seed` are set to 0: the caller (the server, R3.3) sets them to the
+    /// episode this snapshot actually belongs to.
     #[must_use]
     pub fn from_sim(sim: &sim::Simulation) -> Self {
         let step_s = sim.scenario().step_s();
@@ -206,6 +209,8 @@ impl Snapshot {
 
         Snapshot {
             step,
+            episode: 0,
+            seed: 0,
             time_s: steps_to_s(step, step_s),
             signal: SignalView {
                 state: signal_state(sim.signal().state(), step_s),
@@ -250,7 +255,8 @@ impl Metrics {
     /// Builds the running summary and current per-lane queues from `summary` and `sim`.
     ///
     /// `step` and `time_s` come from `sim`, `summary` is copied field by field (ADR-0006), and
-    /// `queue_now` is computed from `sim`'s current vehicles.
+    /// `queue_now` is computed from `sim`'s current vehicles. `episode` and `seed` are set to 0:
+    /// the caller (the server, R3.3) sets them to the episode this message actually belongs to.
     #[must_use]
     pub fn from_sim(summary: &sim::EpisodeSummary, sim: &sim::Simulation) -> Self {
         let step_s = sim.scenario().step_s();
@@ -285,6 +291,8 @@ impl Metrics {
 
         Metrics {
             step,
+            episode: 0,
+            seed: 0,
             time_s: steps_to_s(step, step_s),
             summary: Summary {
                 steps: summary.steps,

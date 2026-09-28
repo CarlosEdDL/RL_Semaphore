@@ -15,12 +15,14 @@ path = "src/main.rs"
 [dependencies]
 rl-semaphore-sim.workspace = true
 rl-semaphore-env.workspace = true
+rl-semaphore-server.workspace = true
 clap.workspace = true
 serde.workspace = true
 serde_json.workspace = true
 tracing.workspace = true
 tracing-subscriber.workspace = true
 anyhow.workspace = true
+tokio = { workspace = true, features = ["rt-multi-thread", "signal"] }
 
 [dev-dependencies]
 insta.workspace = true

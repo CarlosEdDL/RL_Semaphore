@@ -5,6 +5,8 @@ expression: pretty
 {
   "type": "metrics",
   "step": 100,
+  "episode": 3,
+  "seed": 2024,
   "time_s": 100.0,
   "summary": {
     "steps": 100,

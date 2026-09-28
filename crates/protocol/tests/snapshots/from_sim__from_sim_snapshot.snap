@@ -4,6 +4,8 @@ expression: "serde_json::to_string_pretty(&snapshot).unwrap()"
 ---
 {
   "step": 387,
+  "episode": 0,
+  "seed": 0,
   "time_s": 387.0,
   "signal": {
     "state": {

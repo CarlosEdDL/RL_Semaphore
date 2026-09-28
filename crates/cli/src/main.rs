@@ -2,6 +2,7 @@
 
 mod logging;
 mod report;
+mod serve;
 mod simulate;
 
 use std::process::ExitCode;
@@ -9,6 +10,7 @@ use std::process::ExitCode;
 use clap::{ArgAction, Parser, Subcommand};
 
 use crate::logging::LogFormat;
+use crate::serve::ServeArgs;
 use crate::simulate::SimulateArgs;
 
 /// Train and evaluate RL agents that control simulated traffic lights.
@@ -45,8 +47,8 @@ enum Command {
     Train,
     /// Evaluate a policy or baseline over several seeds
     Eval,
-    /// Start the web server and dashboard
-    Serve,
+    /// Start the Axum server and stream a live, looping fixed-time simulation
+    Serve(ServeArgs),
 }
 
 impl Command {
@@ -55,7 +57,7 @@ impl Command {
             Self::Simulate(_) => "simulate",
             Self::Train => "train",
             Self::Eval => "eval",
-            Self::Serve => "serve",
+            Self::Serve(_) => "serve",
         }
     }
 }
@@ -63,7 +65,8 @@ impl Command {
 fn run(cli: &Cli) -> anyhow::Result<()> {
     match &cli.command {
         Command::Simulate(args) => simulate::run(args),
-        Command::Train | Command::Eval | Command::Serve => {
+        Command::Serve(args) => serve::run(args),
+        Command::Train | Command::Eval => {
             anyhow::bail!("{}: not implemented yet", cli.command.name())
         }
     }
@@ -107,7 +110,7 @@ mod tests {
             (vec!["simulate", "--config", "x.toml"], "simulate"),
             (vec!["train"], "train"),
             (vec!["eval"], "eval"),
-            (vec!["serve"], "serve"),
+            (vec!["serve", "--config", "x.toml"], "serve"),
         ];
         for (args, name) in cases {
             let cli = Cli::try_parse_from(["rl-semaphore"].into_iter().chain(args)).unwrap();
@@ -164,5 +167,103 @@ mod tests {
     #[test]
     fn missing_subcommand_is_an_error() {
         assert!(Cli::try_parse_from(["rl-semaphore"]).is_err());
+    }
+
+    fn parse_serve(args: &[&str]) -> ServeArgs {
+        match Cli::try_parse_from(["rl-semaphore"].into_iter().chain(args.iter().copied()))
+            .unwrap()
+            .command
+        {
+            Command::Serve(args) => args,
+            other => panic!("expected Serve, got {other:?}"),
+        }
+    }
+
+    #[test]
+    fn serve_config_is_required() {
+        assert!(Cli::try_parse_from(["rl-semaphore", "serve"]).is_err());
+    }
+
+    #[test]
+    fn serve_defaults() {
+        let args = parse_serve(&["serve", "--config", "x.toml"]);
+        assert_eq!(args.config, "x.toml");
+        assert_eq!(args.seed, 0);
+        assert_eq!(args.steps.get(), 3600);
+        assert!((args.speed - 1.0).abs() < f64::EPSILON);
+        assert_eq!(args.metrics_every.get(), 5);
+        assert_eq!(args.bind, "127.0.0.1:3000".parse().unwrap());
+    }
+
+    #[test]
+    fn serve_parses_every_flag() {
+        let args = parse_serve(&[
+            "serve",
+            "--config",
+            "x.toml",
+            "--seed",
+            "42",
+            "--steps",
+            "100",
+            "--speed",
+            "10.5",
+            "--metrics-every",
+            "7",
+            "--bind",
+            "0.0.0.0:8080",
+        ]);
+        assert_eq!(args.seed, 42);
+        assert_eq!(args.steps.get(), 100);
+        assert!((args.speed - 10.5).abs() < f64::EPSILON);
+        assert_eq!(args.metrics_every.get(), 7);
+        assert_eq!(args.bind, "0.0.0.0:8080".parse().unwrap());
+    }
+
+    #[test]
+    fn serve_rejects_invalid_speeds() {
+        for speed in ["0", "-1"] {
+            assert!(
+                Cli::try_parse_from([
+                    "rl-semaphore",
+                    "serve",
+                    "--config",
+                    "x.toml",
+                    "--speed",
+                    speed
+                ])
+                .is_err(),
+                "speed={speed}"
+            );
+        }
+    }
+
+    #[test]
+    fn serve_rejects_zero_steps() {
+        assert!(
+            Cli::try_parse_from([
+                "rl-semaphore",
+                "serve",
+                "--config",
+                "x.toml",
+                "--steps",
+                "0"
+            ])
+            .is_err()
+        );
+    }
+
+    #[test]
+    fn serve_rejects_an_invalid_bind_address() {
+        assert!(
+            Cli::try_parse_from([
+                "rl-semaphore",
+                "serve",
+                "--config",
+                "x.toml",
+                "--bind",
+                "not-an-address"
+            ])
+            .is_err()
+        );
     }
 }

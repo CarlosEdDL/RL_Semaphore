@@ -41,6 +41,7 @@ jobs:
         with:
           shared-key: clippy
       - run: cargo clippy --workspace --all-targets --locked -- -D warnings
+      - run: cargo clippy -p rl-semaphore-protocol --all-targets --locked -- -D warnings
       - run: cargo clippy -p rl-semaphore-protocol --all-targets --features sim --locked -- -D warnings
 
   test:
@@ -58,6 +59,7 @@ jobs:
         with:
           tool: cargo-nextest
       - run: cargo nextest run --workspace --locked
+      - run: cargo nextest run -p rl-semaphore-protocol --locked
       - run: cargo nextest run -p rl-semaphore-protocol --features sim --locked
       - name: Doctests (not run by nextest)
         run: cargo test --workspace --doc --locked

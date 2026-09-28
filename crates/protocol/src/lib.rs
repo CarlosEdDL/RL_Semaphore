@@ -14,8 +14,16 @@
 //!
 //! A connection sends exactly one `Hello` first, then any sequence of `Snapshot` and `Metrics`
 //! messages, each `Metrics` describing the same step as the latest `Snapshot` or an earlier one.
-//! This phase only defines that order; 2.2 (the Axum server) enforces it. There is no
-//! client-to-server message in this phase.
+//! `Snapshot` and `Metrics` also carry `episode` and `seed`, so a client can tell which episode
+//! of the server's run a message belongs to even after joining late or skipping frames under lag.
+//! The server (2.2) enforces this order:
+//!
+//! - exactly one `Hello` first on every connection;
+//! - the keys `(episode, step)` of the `Snapshot`s strictly increase;
+//! - every `Metrics` has a key no greater than the key of the latest `Snapshot` sent before it;
+//! - a new episode shows as a larger `episode` with `step` back at 0.
+//!
+//! There is no client-to-server message in this phase.
 //!
 //! # Versioning
 //!

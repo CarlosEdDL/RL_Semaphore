@@ -1,11 +1,10 @@
-//! The episode runner: one loop for the CLI, the server and the evaluations.
+//! The episode stepper ([`crate::Episode`]) and `run_episode`, its whole-episode convenience
+//! wrapper, shared by the CLI, the server and the evaluations.
 
-use rl_semaphore_sim::{
-    Demand, EpisodeMetrics, EpisodeSummary, MetricsError, Scenario, Simulation, SpawnError,
-    StepOutcome,
-};
+use rl_semaphore_sim::{EpisodeSummary, MetricsError, Scenario, SpawnError};
 
 use crate::controller::Controller;
+use crate::episode::Episode;
 
 /// Why an episode could not run.
 #[derive(Debug, Clone, PartialEq, Eq, thiserror::Error)]
@@ -74,26 +73,9 @@ pub fn run_episode(
     seed: u64,
     steps: u64,
 ) -> Result<EpisodeReport, EnvError> {
-    let mut demand = Demand::new(scenario, seed);
-    let mut sim = Simulation::new(scenario.clone());
-    let mut metrics = EpisodeMetrics::new(&sim);
-    let mut signal = SignalCounts::default();
+    let mut episode = Episode::new(scenario, seed);
     for _ in 0..steps {
-        for arrival in demand.arrivals() {
-            sim.spawn(arrival.approach, arrival.movement)?;
-        }
-        let command = controller.command(&sim);
-        let report = sim.step(command);
-        match report.signal {
-            StepOutcome::Held => {}
-            StepOutcome::SwitchStarted(_) => signal.switches_started += 1,
-            StepOutcome::SwitchForced { .. } => signal.switches_forced += 1,
-            StepOutcome::Ignored(_) => signal.commands_ignored += 1,
-        }
-        metrics.observe(&sim, &report)?;
+        episode.step(controller)?;
     }
-    Ok(EpisodeReport {
-        summary: metrics.summary(&sim),
-        signal,
-    })
+    Ok(episode.report())
 }

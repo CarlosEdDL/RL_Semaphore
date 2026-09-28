@@ -9,6 +9,16 @@ use crate::common::{ByApproach, LaneRef, Light, Movement};
 pub struct Snapshot {
     /// The simulation's step count.
     pub step: u64,
+    /// The index of the episode this snapshot belongs to, starting at 0. The caller sets it;
+    /// [`Snapshot::from_sim`] always sets it to 0. `#[serde(default)]` so a message encoded
+    /// before this field existed still decodes, with `episode` 0.
+    #[serde(default)]
+    pub episode: u64,
+    /// The demand seed of the episode this snapshot belongs to. The caller sets it;
+    /// [`Snapshot::from_sim`] always sets it to 0. `#[serde(default)]` so a message encoded
+    /// before this field existed still decodes, with `seed` 0.
+    #[serde(default)]
+    pub seed: u64,
     /// `step * step_s`, in seconds.
     pub time_s: f64,
     /// The signal's current lights and state.

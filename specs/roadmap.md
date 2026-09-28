@@ -25,7 +25,7 @@ Legend: ☐ not started · ◐ in progress · ☑ done
 ## Stage 2: Visualization of the simulator
 
 - ☑ **2.1 Protocol crate.** Versioned `Snapshot` and `Metrics` DTOs with serde round-trip tests.
-- ☐ **2.2 Axum server.** Health endpoint and a WebSocket that streams snapshots from a running fixed-time sim.
+- ☑ **2.2 Axum server.** Health endpoint and a WebSocket that streams snapshots from a running fixed-time sim.
 - ☐ **2.3 Leptos app shell.** Build with `cargo-leptos`, served by Axum, with a connection status indicator.
 - ☐ **2.4 Canvas renderer.** Draws the intersection, lanes, lights, and vehicles live. **This is the first visible milestone.**
 - ☐ **2.5 Live metrics panel.** Current queue lengths and a wait chart (plotters). Vehicles are color-coded by wait time, and starved vehicles are highlighted.

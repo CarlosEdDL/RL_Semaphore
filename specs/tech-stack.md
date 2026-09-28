@@ -31,12 +31,12 @@ Everything is written in **Rust**, from the simulator and learning algorithms to
 | Crate | Responsibility | Key dependencies |
 |-------|----------------|------------------|
 | `sim` | Pure traffic simulation: road graph, vehicles, signals, demand generation, metrics. No I/O and no async. | `rand_chacha`, `serde` |
-| `env` | RL environment trait (Gymnasium-like `reset`/`step`), observation/action/reward definitions, action masking and safety layer, baseline controllers. | `sim` |
+| `env` | RL environment trait (Gymnasium-like `reset`/`step`), observation/action/reward definitions, action masking and safety layer, baseline controllers, and the `Episode` stepper `run_episode` and the server's sim thread both run on. | `sim` |
 | `agents` | DQN and PPO implemented on Burn, plus replay buffer, rollout buffer, and schedules. | `burn`, `env` |
 | `trainer` | Training loop, evaluation, checkpointing, metric emission. | `agents`, `storage`, `tracing` |
 | `storage` | Run registry and metrics in SQLite, checkpoints on the filesystem. | `sqlx` (SQLite, compile-time checked queries) |
 | `protocol` | Shared DTOs for REST and WebSocket messages, versioned. Used by both server and web. | `serde`, `serde_json`; optional `sim` feature (off by default) adds conversions from `rl-semaphore-sim` |
-| `server` | HTTP/WS API, run management, serves the frontend bundle. | `axum`, `tokio`, `tower-http` |
+| `server` | HTTP/WS API, run management, serves the frontend bundle. Streams a live, looping fixed-time simulation on a dedicated thread (2.2). | `axum`, `tokio`, `tower-http`, `protocol` (`sim` feature), `env` |
 | `web` | Leptos frontend compiled to WASM. | `leptos`, `web-sys`, `plotters` + `plotters-canvas` |
 | `cli` | `rl-semaphore train | eval | simulate | serve` entry point. | `clap` |
 

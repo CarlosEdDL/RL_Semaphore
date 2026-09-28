@@ -196,20 +196,26 @@ fn vehicle_view() -> impl Strategy<Value = VehicleView> {
 fn snapshot() -> impl Strategy<Value = Snapshot> {
     (
         any::<u64>(),
+        any::<u64>(),
+        any::<u64>(),
         finite_f64(),
         signal_view(),
         vehicle_counts(),
         prop::collection::vec(lane_state(), 0..=6),
         prop::collection::vec(vehicle_view(), 0..=6),
     )
-        .prop_map(|(step, time_s, signal, counts, lanes, vehicles)| Snapshot {
-            step,
-            time_s,
-            signal,
-            counts,
-            lanes,
-            vehicles,
-        })
+        .prop_map(
+            |(step, episode, seed, time_s, signal, counts, lanes, vehicles)| Snapshot {
+                step,
+                episode,
+                seed,
+                time_s,
+                signal,
+                counts,
+                lanes,
+                vehicles,
+            },
+        )
 }
 
 fn wait_stats() -> impl Strategy<Value = WaitStats> {
@@ -294,16 +300,22 @@ fn summary() -> impl Strategy<Value = Summary> {
 fn metrics() -> impl Strategy<Value = Metrics> {
     (
         any::<u64>(),
+        any::<u64>(),
+        any::<u64>(),
         finite_f64(),
         summary(),
         prop::collection::vec(lane_queue_now(), 0..=6),
     )
-        .prop_map(|(step, time_s, summary, queue_now)| Metrics {
-            step,
-            time_s,
-            summary,
-            queue_now,
-        })
+        .prop_map(
+            |(step, episode, seed, time_s, summary, queue_now)| Metrics {
+                step,
+                episode,
+                seed,
+                time_s,
+                summary,
+                queue_now,
+            },
+        )
 }
 
 fn server_message() -> impl Strategy<Value = ServerMessage> {

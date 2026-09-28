@@ -8,5 +8,23 @@ repository.workspace = true
 authors.workspace = true
 publish = false
 
+[dependencies]
+rl-semaphore-sim.workspace = true
+rl-semaphore-env.workspace = true
+rl-semaphore-protocol = { workspace = true, features = ["sim"] }
+axum.workspace = true
+tokio.workspace = true
+tower-http.workspace = true
+serde.workspace = true
+serde_json.workspace = true
+thiserror.workspace = true
+tracing.workspace = true
+
+[dev-dependencies]
+tokio = { workspace = true, features = ["test-util"] }
+tokio-tungstenite.workspace = true
+futures-util.workspace = true
+tower.workspace = true
+
 [lints]
 workspace = true
