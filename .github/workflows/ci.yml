@@ -41,6 +41,7 @@ jobs:
         with:
           shared-key: clippy
       - run: cargo clippy --workspace --all-targets --locked -- -D warnings
+      - run: cargo clippy -p rl-semaphore-protocol --all-targets --features sim --locked -- -D warnings
 
   test:
     if: github.event_name != 'schedule'
@@ -57,6 +58,7 @@ jobs:
         with:
           tool: cargo-nextest
       - run: cargo nextest run --workspace --locked
+      - run: cargo nextest run -p rl-semaphore-protocol --features sim --locked
       - name: Doctests (not run by nextest)
         run: cargo test --workspace --doc --locked
 
@@ -72,6 +74,7 @@ jobs:
         with:
           shared-key: wasm
       - run: cargo build -p rl-semaphore-web --target wasm32-unknown-unknown --locked
+      - run: cargo build -p rl-semaphore-protocol --target wasm32-unknown-unknown --locked
 
   bench:
     if: github.event_name != 'schedule'

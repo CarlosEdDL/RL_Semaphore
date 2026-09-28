@@ -1,0 +1,173 @@
+---
+source: crates/protocol/tests/from_sim.rs
+expression: "serde_json::to_string_pretty(&wire_metrics).unwrap()"
+---
+{
+  "step": 387,
+  "time_s": 387.0,
+  "summary": {
+    "steps": 387,
+    "duration_s": 387.0,
+    "departed": 98,
+    "in_system": 23,
+    "throughput_veh_per_h": 911.6279069767442,
+    "wait": {
+      "count": 121,
+      "mean_s": 27.272727272727273,
+      "p50_s": 22.0,
+      "p95_s": 63.0,
+      "p99_s": 76.0,
+      "max_s": 87.0
+    },
+    "wait_by_approach": {
+      "north": {
+        "count": 49,
+        "mean_s": 21.714285714285715,
+        "p50_s": 11.0,
+        "p95_s": 69.0,
+        "p99_s": 76.0,
+        "max_s": 76.0
+      },
+      "east": {
+        "count": 30,
+        "mean_s": 32.733333333333334,
+        "p50_s": 36.0,
+        "p95_s": 63.0,
+        "p99_s": 63.0,
+        "max_s": 63.0
+      },
+      "south": {
+        "count": 32,
+        "mean_s": 29.84375,
+        "p50_s": 24.0,
+        "p95_s": 75.0,
+        "p99_s": 87.0,
+        "max_s": 87.0
+      },
+      "west": {
+        "count": 10,
+        "mean_s": 29.9,
+        "p50_s": 18.0,
+        "p95_s": 62.0,
+        "p99_s": 62.0,
+        "max_s": 62.0
+      }
+    },
+    "queue_by_lane": [
+      {
+        "lane": {
+          "approach": "north",
+          "index": 0
+        },
+        "mean": 0.3695090439276486,
+        "max": 2
+      },
+      {
+        "lane": {
+          "approach": "north",
+          "index": 1
+        },
+        "mean": 2.37984496124031,
+        "max": 10
+      },
+      {
+        "lane": {
+          "approach": "east",
+          "index": 0
+        },
+        "mean": 2.537467700258398,
+        "max": 7
+      },
+      {
+        "lane": {
+          "approach": "south",
+          "index": 0
+        },
+        "mean": 0.8036175710594315,
+        "max": 4
+      },
+      {
+        "lane": {
+          "approach": "south",
+          "index": 1
+        },
+        "mean": 1.6640826873385013,
+        "max": 10
+      },
+      {
+        "lane": {
+          "approach": "west",
+          "index": 0
+        },
+        "mean": 0.772609819121447,
+        "max": 3
+      }
+    ],
+    "queue_by_approach": {
+      "north": {
+        "mean": 2.749354005167959,
+        "max": 10
+      },
+      "east": {
+        "mean": 2.537467700258398,
+        "max": 7
+      },
+      "south": {
+        "mean": 2.4677002583979326,
+        "max": 10
+      },
+      "west": {
+        "mean": 0.772609819121447,
+        "max": 3
+      }
+    },
+    "queue_total": {
+      "mean": 8.527131782945736,
+      "max": 23
+    }
+  },
+  "queue_now": [
+    {
+      "lane": {
+        "approach": "north",
+        "index": 0
+      },
+      "stopped": 2
+    },
+    {
+      "lane": {
+        "approach": "north",
+        "index": 1
+      },
+      "stopped": 6
+    },
+    {
+      "lane": {
+        "approach": "east",
+        "index": 0
+      },
+      "stopped": 0
+    },
+    {
+      "lane": {
+        "approach": "south",
+        "index": 0
+      },
+      "stopped": 2
+    },
+    {
+      "lane": {
+        "approach": "south",
+        "index": 1
+      },
+      "stopped": 4
+    },
+    {
+      "lane": {
+        "approach": "west",
+        "index": 0
+      },
+      "stopped": 1
+    }
+  ]
+}

@@ -13,6 +13,7 @@ authors = ["Carlos Duque"]
 [workspace.dependencies]
 rl-semaphore-sim = { path = "crates/sim", version = "0.1.0" }
 rl-semaphore-env = { path = "crates/env", version = "0.1.0" }
+rl-semaphore-protocol = { path = "crates/protocol", version = "0.1.0" }
 clap = { version = "4", features = ["derive", "env"] }
 tracing = "0.1"
 tracing-subscriber = { version = "0.3", features = ["env-filter", "fmt", "json"] }

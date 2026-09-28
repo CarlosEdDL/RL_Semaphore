@@ -35,7 +35,7 @@ Everything is written in **Rust**, from the simulator and learning algorithms to
 | `agents` | DQN and PPO implemented on Burn, plus replay buffer, rollout buffer, and schedules. | `burn`, `env` |
 | `trainer` | Training loop, evaluation, checkpointing, metric emission. | `agents`, `storage`, `tracing` |
 | `storage` | Run registry and metrics in SQLite, checkpoints on the filesystem. | `sqlx` (SQLite, compile-time checked queries) |
-| `protocol` | Shared DTOs for REST and WebSocket messages, versioned. Used by both server and web. | `serde` |
+| `protocol` | Shared DTOs for REST and WebSocket messages, versioned. Used by both server and web. | `serde`, `serde_json`; optional `sim` feature (off by default) adds conversions from `rl-semaphore-sim` |
 | `server` | HTTP/WS API, run management, serves the frontend bundle. | `axum`, `tokio`, `tower-http` |
 | `web` | Leptos frontend compiled to WASM. | `leptos`, `web-sys`, `plotters` + `plotters-canvas` |
 | `cli` | `rl-semaphore train | eval | simulate | serve` entry point. | `clap` |

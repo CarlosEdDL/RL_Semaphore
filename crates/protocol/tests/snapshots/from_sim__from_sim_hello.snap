@@ -1,0 +1,157 @@
+---
+source: crates/protocol/tests/from_sim.rs
+expression: "serde_json::to_string_pretty(&hello).unwrap()"
+---
+{
+  "protocol_version": 1,
+  "layout": {
+    "step_s": 1.0,
+    "cell_length_m": 7.5,
+    "approaches": {
+      "north": {
+        "length_m": 150.0,
+        "lanes": [
+          {
+            "index": 0,
+            "len_cells": 20,
+            "movements": [
+              "left"
+            ]
+          },
+          {
+            "index": 1,
+            "len_cells": 20,
+            "movements": [
+              "through",
+              "right"
+            ]
+          }
+        ]
+      },
+      "east": {
+        "length_m": 100.0,
+        "lanes": [
+          {
+            "index": 0,
+            "len_cells": 13,
+            "movements": [
+              "left",
+              "through",
+              "right"
+            ]
+          }
+        ]
+      },
+      "south": {
+        "length_m": 150.0,
+        "lanes": [
+          {
+            "index": 0,
+            "len_cells": 20,
+            "movements": [
+              "left"
+            ]
+          },
+          {
+            "index": 1,
+            "len_cells": 20,
+            "movements": [
+              "through",
+              "right"
+            ]
+          }
+        ]
+      },
+      "west": {
+        "length_m": 100.0,
+        "lanes": [
+          {
+            "index": 0,
+            "len_cells": 13,
+            "movements": [
+              "left",
+              "through",
+              "right"
+            ]
+          }
+        ]
+      }
+    },
+    "signal": {
+      "yellow_s": 3.0,
+      "all_red_s": 2.0,
+      "min_green_s": 5.0,
+      "max_red_s": 90.0,
+      "phases": [
+        {
+          "name": "ns-left",
+          "green": [
+            {
+              "approach": "north",
+              "movement": "left"
+            },
+            {
+              "approach": "south",
+              "movement": "left"
+            }
+          ]
+        },
+        {
+          "name": "ns-through",
+          "green": [
+            {
+              "approach": "north",
+              "movement": "through"
+            },
+            {
+              "approach": "north",
+              "movement": "right"
+            },
+            {
+              "approach": "south",
+              "movement": "through"
+            },
+            {
+              "approach": "south",
+              "movement": "right"
+            }
+          ]
+        },
+        {
+          "name": "east",
+          "green": [
+            {
+              "approach": "east",
+              "movement": "left"
+            },
+            {
+              "approach": "east",
+              "movement": "through"
+            },
+            {
+              "approach": "east",
+              "movement": "right"
+            }
+          ]
+        },
+        {
+          "name": "west",
+          "green": [
+            {
+              "approach": "west",
+              "movement": "left"
+            },
+            {
+              "approach": "west",
+              "movement": "through"
+            },
+            {
+              "approach": "west",
+              "movement": "right"
+            }
+          ]
+        }
+      ]
+    }
+  }
+}

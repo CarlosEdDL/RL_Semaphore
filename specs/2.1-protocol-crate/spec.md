@@ -1,6 +1,6 @@
 # 2.1 Protocol crate
 
-**Stage:** 2 (Visualization of the simulator) · **Status:** ☐ not started · **Size:** one PR
+**Stage:** 2 (Visualization of the simulator) · **Status:** ☑ done · **Size:** one PR
 
 Related files: [requirements.md](requirements.md) (requirements R1–R10) · [plan.md](plan.md) (tasks).
 

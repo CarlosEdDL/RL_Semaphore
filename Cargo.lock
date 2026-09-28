@@ -643,6 +643,14 @@ dependencies = [
 [[package]]
 name = "rl-semaphore-protocol"
 version = "0.1.0"
+dependencies = [
+ "insta",
+ "proptest",
+ "rl-semaphore-sim",
+ "serde",
+ "serde_json",
+ "thiserror",
+]
 
 [[package]]
 name = "rl-semaphore-server"

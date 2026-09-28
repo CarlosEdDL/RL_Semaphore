@@ -1,0 +1,124 @@
+---
+source: crates/protocol/tests/golden.rs
+expression: pretty
+---
+{
+  "type": "snapshot",
+  "step": 100,
+  "time_s": 100.0,
+  "signal": {
+    "state": {
+      "kind": "all_red",
+      "from": 0,
+      "to": 1,
+      "elapsed_s": 1.0
+    },
+    "lights": {
+      "north": {
+        "left": "green",
+        "through": "green",
+        "right": "green"
+      },
+      "east": {
+        "left": "red",
+        "through": "red",
+        "right": "red"
+      },
+      "south": {
+        "left": "green",
+        "through": "green",
+        "right": "green"
+      },
+      "west": {
+        "left": "red",
+        "through": "red",
+        "right": "red"
+      }
+    }
+  },
+  "counts": {
+    "spawned": 10,
+    "backlog": 3,
+    "on_lane": 5,
+    "departed": 2
+  },
+  "lanes": [
+    {
+      "lane": {
+        "approach": "north",
+        "index": 0
+      },
+      "backlog": 0
+    },
+    {
+      "lane": {
+        "approach": "north",
+        "index": 1
+      },
+      "backlog": 3
+    },
+    {
+      "lane": {
+        "approach": "east",
+        "index": 0
+      },
+      "backlog": 0
+    },
+    {
+      "lane": {
+        "approach": "south",
+        "index": 0
+      },
+      "backlog": 0
+    },
+    {
+      "lane": {
+        "approach": "south",
+        "index": 1
+      },
+      "backlog": 0
+    },
+    {
+      "lane": {
+        "approach": "west",
+        "index": 0
+      },
+      "backlog": 0
+    }
+  ],
+  "vehicles": [
+    {
+      "id": 0,
+      "lane": {
+        "approach": "north",
+        "index": 0
+      },
+      "cell": 0,
+      "movement": "left",
+      "wait_s": 0.0,
+      "stopped": true
+    },
+    {
+      "id": 1,
+      "lane": {
+        "approach": "north",
+        "index": 1
+      },
+      "cell": 2,
+      "movement": "through",
+      "wait_s": 1.0,
+      "stopped": false
+    },
+    {
+      "id": 2,
+      "lane": {
+        "approach": "south",
+        "index": 1
+      },
+      "cell": 3,
+      "movement": "right",
+      "wait_s": 2.0,
+      "stopped": true
+    }
+  ]
+}

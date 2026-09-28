@@ -75,9 +75,12 @@ To reproduce CI locally (needs `cargo-nextest`):
 ```sh
 cargo fmt --all --check
 cargo clippy --workspace --all-targets --locked -- -D warnings
+cargo clippy -p rl-semaphore-protocol --all-targets --features sim --locked -- -D warnings
 cargo nextest run --workspace --locked
+cargo nextest run -p rl-semaphore-protocol --features sim --locked
 cargo test --workspace --doc --locked
 cargo bench -p rl-semaphore-env --bench throughput --locked -- --test
+cargo build -p rl-semaphore-protocol --target wasm32-unknown-unknown --locked
 ```
 
 ## Baseline
@@ -112,7 +115,7 @@ Measured on an i7-12700 (20 threads), WSL2 on Windows, Rust 1.98.1, on 2026-09-2
 
 ## Project status
 
-Stage 1, Simulator, is done: the road, signal, vehicles, demand, metrics, the fixed-time baseline with `simulate`, and the throughput benchmark. Next is 2.1 (protocol crate). See the [roadmap](specs/roadmap.md).
+Stage 1, Simulator, is done. Stage 2, Visualization of the simulator, has started: 2.1 (protocol crate) is done, giving the versioned `Hello`/`Snapshot`/`Metrics` DTOs the server and web will share. Next is 2.2 (Axum server). See the [roadmap](specs/roadmap.md).
 
 ## Documentation
 

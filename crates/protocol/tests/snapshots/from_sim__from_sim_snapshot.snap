@@ -1,0 +1,331 @@
+---
+source: crates/protocol/tests/from_sim.rs
+expression: "serde_json::to_string_pretty(&snapshot).unwrap()"
+---
+{
+  "step": 387,
+  "time_s": 387.0,
+  "signal": {
+    "state": {
+      "kind": "green",
+      "phase": 3,
+      "elapsed_s": 2.0
+    },
+    "lights": {
+      "north": {
+        "left": "red",
+        "through": "red",
+        "right": "red"
+      },
+      "east": {
+        "left": "red",
+        "through": "red",
+        "right": "red"
+      },
+      "south": {
+        "left": "red",
+        "through": "red",
+        "right": "red"
+      },
+      "west": {
+        "left": "green",
+        "through": "green",
+        "right": "green"
+      }
+    }
+  },
+  "counts": {
+    "spawned": 121,
+    "backlog": 1,
+    "on_lane": 22,
+    "departed": 98
+  },
+  "lanes": [
+    {
+      "lane": {
+        "approach": "north",
+        "index": 0
+      },
+      "backlog": 0
+    },
+    {
+      "lane": {
+        "approach": "north",
+        "index": 1
+      },
+      "backlog": 1
+    },
+    {
+      "lane": {
+        "approach": "east",
+        "index": 0
+      },
+      "backlog": 0
+    },
+    {
+      "lane": {
+        "approach": "south",
+        "index": 0
+      },
+      "backlog": 0
+    },
+    {
+      "lane": {
+        "approach": "south",
+        "index": 1
+      },
+      "backlog": 0
+    },
+    {
+      "lane": {
+        "approach": "west",
+        "index": 0
+      },
+      "backlog": 0
+    }
+  ],
+  "vehicles": [
+    {
+      "id": 94,
+      "lane": {
+        "approach": "west",
+        "index": 0
+      },
+      "cell": 12,
+      "movement": "through",
+      "wait_s": 62.0,
+      "stopped": false
+    },
+    {
+      "id": 96,
+      "lane": {
+        "approach": "south",
+        "index": 0
+      },
+      "cell": 19,
+      "movement": "left",
+      "wait_s": 43.0,
+      "stopped": true
+    },
+    {
+      "id": 99,
+      "lane": {
+        "approach": "west",
+        "index": 0
+      },
+      "cell": 10,
+      "movement": "through",
+      "wait_s": 45.0,
+      "stopped": true
+    },
+    {
+      "id": 100,
+      "lane": {
+        "approach": "north",
+        "index": 1
+      },
+      "cell": 19,
+      "movement": "through",
+      "wait_s": 26.0,
+      "stopped": true
+    },
+    {
+      "id": 101,
+      "lane": {
+        "approach": "north",
+        "index": 1
+      },
+      "cell": 18,
+      "movement": "through",
+      "wait_s": 23.0,
+      "stopped": true
+    },
+    {
+      "id": 102,
+      "lane": {
+        "approach": "south",
+        "index": 0
+      },
+      "cell": 18,
+      "movement": "left",
+      "wait_s": 19.0,
+      "stopped": true
+    },
+    {
+      "id": 103,
+      "lane": {
+        "approach": "north",
+        "index": 0
+      },
+      "cell": 19,
+      "movement": "left",
+      "wait_s": 15.0,
+      "stopped": true
+    },
+    {
+      "id": 104,
+      "lane": {
+        "approach": "south",
+        "index": 1
+      },
+      "cell": 19,
+      "movement": "through",
+      "wait_s": 15.0,
+      "stopped": true
+    },
+    {
+      "id": 105,
+      "lane": {
+        "approach": "south",
+        "index": 1
+      },
+      "cell": 18,
+      "movement": "through",
+      "wait_s": 13.0,
+      "stopped": true
+    },
+    {
+      "id": 107,
+      "lane": {
+        "approach": "north",
+        "index": 1
+      },
+      "cell": 17,
+      "movement": "through",
+      "wait_s": 11.0,
+      "stopped": true
+    },
+    {
+      "id": 108,
+      "lane": {
+        "approach": "north",
+        "index": 0
+      },
+      "cell": 18,
+      "movement": "left",
+      "wait_s": 9.0,
+      "stopped": true
+    },
+    {
+      "id": 109,
+      "lane": {
+        "approach": "north",
+        "index": 1
+      },
+      "cell": 16,
+      "movement": "right",
+      "wait_s": 11.0,
+      "stopped": true
+    },
+    {
+      "id": 110,
+      "lane": {
+        "approach": "south",
+        "index": 1
+      },
+      "cell": 17,
+      "movement": "through",
+      "wait_s": 9.0,
+      "stopped": true
+    },
+    {
+      "id": 111,
+      "lane": {
+        "approach": "north",
+        "index": 1
+      },
+      "cell": 15,
+      "movement": "through",
+      "wait_s": 6.0,
+      "stopped": true
+    },
+    {
+      "id": 112,
+      "lane": {
+        "approach": "south",
+        "index": 1
+      },
+      "cell": 16,
+      "movement": "through",
+      "wait_s": 5.0,
+      "stopped": true
+    },
+    {
+      "id": 113,
+      "lane": {
+        "approach": "south",
+        "index": 1
+      },
+      "cell": 15,
+      "movement": "through",
+      "wait_s": 0.0,
+      "stopped": false
+    },
+    {
+      "id": 114,
+      "lane": {
+        "approach": "north",
+        "index": 1
+      },
+      "cell": 13,
+      "movement": "through",
+      "wait_s": 0.0,
+      "stopped": false
+    },
+    {
+      "id": 115,
+      "lane": {
+        "approach": "north",
+        "index": 1
+      },
+      "cell": 8,
+      "movement": "through",
+      "wait_s": 0.0,
+      "stopped": false
+    },
+    {
+      "id": 116,
+      "lane": {
+        "approach": "north",
+        "index": 0
+      },
+      "cell": 3,
+      "movement": "left",
+      "wait_s": 0.0,
+      "stopped": false
+    },
+    {
+      "id": 117,
+      "lane": {
+        "approach": "north",
+        "index": 1
+      },
+      "cell": 2,
+      "movement": "through",
+      "wait_s": 0.0,
+      "stopped": false
+    },
+    {
+      "id": 118,
+      "lane": {
+        "approach": "north",
+        "index": 1
+      },
+      "cell": 0,
+      "movement": "through",
+      "wait_s": 2.0,
+      "stopped": false
+    },
+    {
+      "id": 120,
+      "lane": {
+        "approach": "north",
+        "index": 0
+      },
+      "cell": 0,
+      "movement": "left",
+      "wait_s": 0.0,
+      "stopped": false
+    }
+  ]
+}

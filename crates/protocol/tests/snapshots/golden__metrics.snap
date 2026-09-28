@@ -1,0 +1,93 @@
+---
+source: crates/protocol/tests/golden.rs
+expression: pretty
+---
+{
+  "type": "metrics",
+  "step": 100,
+  "time_s": 100.0,
+  "summary": {
+    "steps": 100,
+    "duration_s": 100.0,
+    "departed": 20,
+    "in_system": 5,
+    "throughput_veh_per_h": 720.0,
+    "wait": {
+      "count": 25,
+      "mean_s": 3.5,
+      "p50_s": 3.0,
+      "p95_s": 8.0,
+      "p99_s": 9.5,
+      "max_s": 10.0
+    },
+    "wait_by_approach": {
+      "north": {
+        "count": 15,
+        "mean_s": 3.5,
+        "p50_s": 3.0,
+        "p95_s": 8.0,
+        "p99_s": 9.5,
+        "max_s": 10.0
+      },
+      "east": null,
+      "south": {
+        "count": 10,
+        "mean_s": 3.5,
+        "p50_s": 3.0,
+        "p95_s": 8.0,
+        "p99_s": 9.5,
+        "max_s": 10.0
+      },
+      "west": null
+    },
+    "queue_by_lane": [
+      {
+        "lane": {
+          "approach": "north",
+          "index": 0
+        },
+        "mean": 1.0,
+        "max": 3
+      },
+      {
+        "lane": {
+          "approach": "north",
+          "index": 1
+        },
+        "mean": 0.5,
+        "max": 2
+      }
+    ],
+    "queue_by_approach": {
+      "north": {
+        "mean": 1.25,
+        "max": 4
+      },
+      "east": {
+        "mean": 1.25,
+        "max": 4
+      },
+      "south": {
+        "mean": 1.25,
+        "max": 4
+      },
+      "west": {
+        "mean": 1.25,
+        "max": 4
+      }
+    },
+    "queue_total": {
+      "mean": 1.25,
+      "max": 4
+    }
+  },
+  "queue_now": [
+    {
+      "lane": {
+        "approach": "north",
+        "index": 0
+      },
+      "stopped": 2
+    }
+  ]
+}

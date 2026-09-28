@@ -8,5 +8,23 @@ repository.workspace = true
 authors.workspace = true
 publish = false
 
+[dependencies]
+serde.workspace = true
+serde_json = { workspace = true, features = ["float_roundtrip"] }
+thiserror.workspace = true
+rl-semaphore-sim = { workspace = true, optional = true }
+
+[dev-dependencies]
+proptest.workspace = true
+insta.workspace = true
+
+[features]
+default = []
+sim = ["dep:rl-semaphore-sim"]
+
+[[test]]
+name = "from_sim"
+required-features = ["sim"]
+
 [lints]
 workspace = true
