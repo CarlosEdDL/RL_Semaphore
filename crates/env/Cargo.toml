@@ -14,6 +14,14 @@ thiserror.workspace = true
 
 [dev-dependencies]
 proptest.workspace = true
+criterion.workspace = true
 
 [lints]
 workspace = true
+
+[lib]
+bench = false
+
+[[bench]]
+name = "throughput"
+harness = false

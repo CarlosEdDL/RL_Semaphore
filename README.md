@@ -77,6 +77,7 @@ cargo fmt --all --check
 cargo clippy --workspace --all-targets --locked -- -D warnings
 cargo nextest run --workspace --locked
 cargo test --workspace --doc --locked
+cargo bench -p rl-semaphore-env --bench throughput --locked -- --test
 ```
 
 ## Baseline
@@ -93,9 +94,25 @@ The fixed-time controller on `configs/single-intersection.toml` (seed 0, 3,600 s
 
 The plan serves the phases in list order with 10 s (`ns-left`), 30 s (`ns-through`), 10 s (`east`) and 10 s (`west`) of green, an 80 s cycle. The side-road phases wait the most: the west approach has a mean wait of 49.3 s and a max of 152.0 s. The full table is in the snapshot `crates/cli/tests/snapshots/simulate_snapshot__text_output_is_pinned.snap`.
 
+## Performance
+
+```sh
+cargo bench -p rl-semaphore-env --bench throughput
+```
+
+Steps per second, at two layers (`sim_step`: spawn, `FixedTime::command`, `Simulation::step`; `episode`: the same plus the demand draw and the metrics) and three workloads built from `configs/single-intersection.toml` (only the demand changes):
+
+| Workload | Demand | `sim_step` | `episode` |
+|----------|--------|------------|-----------|
+| `empty` | 0 veh/h | 10.7 M | 8.64 M |
+| `example` | 1,100 veh/h | 2.11 M | 1.70 M |
+| `heavy` | 1,430 veh/h | 1.58 M | 1.29 M |
+
+Measured on an i7-12700 (20 threads), WSL2 on Windows, Rust 1.98.1, on 2026-09-27. These numbers are for demand the fixed-time plan can serve; the step rate falls sharply once queues grow without bound (tracked for 11.1).
+
 ## Project status
 
-Stage 1, Simulator: the road, signal, vehicles, demand, metrics and the fixed-time baseline with `simulate` are done. Next is the simulator benchmark (1.7). See the [roadmap](specs/roadmap.md).
+Stage 1, Simulator, is done: the road, signal, vehicles, demand, metrics, the fixed-time baseline with `simulate`, and the throughput benchmark. Next is 2.1 (protocol crate). See the [roadmap](specs/roadmap.md).
 
 ## Documentation
 

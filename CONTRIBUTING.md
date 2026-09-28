@@ -68,6 +68,24 @@ The simulator must give the same result for the same `config + seed + code versi
 - No wall-clock time in `sim`.
 - No `HashMap` iteration order in `sim`. Use `BTreeMap`, `IndexMap`, or sorted keys where order matters.
 
+## Benchmarks
+
+`crates/env/benches/throughput.rs` measures steps per second with `criterion`, at two layers (`sim_step`, `episode`) and three demand workloads (`empty`, `example`, `heavy`), built from `configs/single-intersection.toml`.
+
+- Run it: `cargo bench -p rl-semaphore-env --bench throughput`.
+- CI only runs `cargo bench -p rl-semaphore-env --bench throughput --locked -- --test`, which executes every benchmark once (including the workload sanity checks) without measuring, so a broken benchmark fails CI but a slowdown does not.
+- Compare a change against a saved local baseline:
+
+  ```sh
+  # before the change
+  cargo bench -p rl-semaphore-env --bench throughput -- --save-baseline before
+  # after the change
+  cargo bench -p rl-semaphore-env --bench throughput -- --baseline before
+  ```
+
+- A change to the step, demand, metrics or runner code SHOULD be benchmarked this way, with the result stated in the PR.
+- The README's "Performance" table is updated only when a change is meant to move it, with the machine it was measured on. Otherwise leave it as is: it is noisy (WSL2, frequency scaling, background load) and indicative, not a regression gate.
+
 ## Architecture decisions
 
 Write an ADR when a decision is hard to reverse, affects several crates, or picks between real alternatives. See [specs/adr/README.md](specs/adr/README.md).
