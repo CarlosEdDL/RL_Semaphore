@@ -85,7 +85,7 @@ The dependency direction is strict: `sim` ← `env` ← `agents` ← `trainer`. 
 | Testing | Unit tests, integration tests, **property-based tests** (`proptest`) for sim invariants (vehicle conservation, no collisions, signal safety), and golden/snapshot tests (`insta`) for determinism |
 | Test runner | `cargo-nextest` |
 | Coverage | `cargo-llvm-cov`, reported in CI |
-| Benchmarks | `criterion` for sim step throughput, with regressions tracked |
+| Benchmarks | `criterion` in `crates/env/benches`, numbers recorded in the README, a smoke run in CI (`-- --test`, no timing gate), regressions checked locally against a saved baseline |
 | Supply chain | `cargo-deny` (licenses, advisories, duplicate crates) and `cargo-audit` |
 | Docs | `rustdoc` for public APIs, and ADRs in `specs/adr/` for significant decisions |
 | Commits | Conventional Commits, one roadmap phase ≈ one PR |

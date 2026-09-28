@@ -73,6 +73,19 @@ jobs:
           shared-key: wasm
       - run: cargo build -p rl-semaphore-web --target wasm32-unknown-unknown --locked
 
+  bench:
+    if: github.event_name != 'schedule'
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    steps:
+      - uses: actions/checkout@v7
+      - name: Install toolchain from rust-toolchain.toml
+        run: rustup show
+      - uses: Swatinem/rust-cache@v2
+        with:
+          shared-key: bench
+      - run: cargo bench -p rl-semaphore-env --bench throughput --locked -- --test
+
   deny:
     runs-on: ubuntu-latest
     timeout-minutes: 15
